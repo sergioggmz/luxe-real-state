@@ -9,9 +9,16 @@ interface MarketSectionProps {
 }
 
 export function MarketSection({ properties }: MarketSectionProps) {
+  const INITIAL_COUNT = 8;
   const [activeFilter, setActiveFilter] = useState<"All" | "Buy" | "Rent">("All");
+  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_COUNT);
 
   const filterTabs: ("All" | "Buy" | "Rent")[] = ["All", "Buy", "Rent"];
+
+  const handleFilterChange = (tab: "All" | "Buy" | "Rent") => {
+    setActiveFilter(tab);
+    setVisibleCount(INITIAL_COUNT);
+  };
 
   const filteredProperties = properties.filter((property) => {
     if (activeFilter === "All") return true;
@@ -19,6 +26,9 @@ export function MarketSection({ properties }: MarketSectionProps) {
     if (activeFilter === "Rent") return property.listingType === "rent";
     return true;
   });
+
+  const displayedProperties = filteredProperties.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProperties.length;
 
   return (
     <section>
@@ -40,7 +50,7 @@ export function MarketSection({ properties }: MarketSectionProps) {
               <button
                 key={tab}
                 type="button"
-                onClick={() => setActiveFilter(tab)}
+                onClick={() => handleFilterChange(tab)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                   isActive
                     ? "bg-nordic-dark text-white shadow-sm"
@@ -56,31 +66,30 @@ export function MarketSection({ properties }: MarketSectionProps) {
 
       {/* Grid of Property Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProperties.map((property, index) => {
-          let responsiveClasses = "";
-          if (activeFilter === "All") {
-            if (index === 4) responsiveClasses = "hidden xl:flex";
-            if (index === 5) responsiveClasses = "hidden lg:flex";
-          }
-          return (
-            <PropertyCard
-              key={property.id}
-              property={property}
-              className={responsiveClasses}
-            />
-          );
-        })}
+        {displayedProperties.map((property) => (
+          <PropertyCard
+            key={property.id}
+            property={property}
+          />
+        ))}
       </div>
 
       {/* Load More Button */}
-      <div className="mt-12 text-center">
-        <button
-          type="button"
-          className="px-8 py-3 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark font-medium rounded-lg transition-all hover:shadow-md cursor-pointer"
-        >
-          Load more properties
-        </button>
-      </div>
+      {hasMore ? (
+        <div className="mt-12 text-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + 4)}
+            className="px-8 py-3 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark font-medium rounded-lg transition-all hover:shadow-md cursor-pointer"
+          >
+            Load more properties
+          </button>
+        </div>
+      ) : (
+        <div className="mt-12 text-center text-sm text-nordic-muted font-light">
+          Showing all {filteredProperties.length} properties
+        </div>
+      )}
     </section>
   );
 }
