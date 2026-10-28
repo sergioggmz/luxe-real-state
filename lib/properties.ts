@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { supabase } from "@/lib/supabase";
 import { Property, PropertyFilterParams, PropertyImage } from "@/types/property";
 
@@ -213,23 +214,37 @@ export async function getFilteredPropertiesCount(
   return totalCount;
 }
 
-// --- Propiedad individual por SLUG ---
-export async function getPropertyBySlug(slug: string): Promise<Property | null> {
-  const { data, error } = await supabase
-    .from("properties")
-    .select("*, property_images(*)")
-    .eq("slug", slug)
-    .maybeSingle();
+// --- Propiedad individual por SLUG (memoizado con React.cache) ---
+export const getPropertyBySlug = cache(
+  async (slug: string): Promise<Property | null> => {
+    let result = await supabase
+      .from("properties")
+      .select("*, property_images(*)")
+      .eq("slug", slug)
+      .maybeSingle();
 
-  if (error) {
-    console.error("Error fetching property by slug:", error.message);
-    return null;
+    // Reintento automático en caso de cancelación o interrupción transitoria de la conexión
+    if (result.error && result.error.message?.includes("aborted")) {
+      await new Promise((r) => setTimeout(r, 120));
+      result = await supabase
+        .from("properties")
+        .select("*, property_images(*)")
+        .eq("slug", slug)
+        .maybeSingle();
+    }
+
+    if (result.error) {
+      if (!result.error.message?.includes("aborted")) {
+        console.error("Error fetching property by slug:", result.error.message);
+      }
+      return null;
+    }
+
+    if (!result.data) return null;
+
+    return mapRow(result.data);
   }
-
-  if (!data) return null;
-
-  return mapRow(data);
-}
+);
 
 // --- Obtener todos los slugs para Static Generation / Sitemap ---
 export async function getAllPropertySlugs(): Promise<string[]> {
