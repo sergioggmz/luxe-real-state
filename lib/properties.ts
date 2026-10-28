@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Property, PropertyImage } from "@/types/property";
+import { Property, PropertyFilterParams, PropertyImage } from "@/types/property";
 
 // Convierte una fila plana o con joins de la BD al tipo anidado Property del front
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,26 +112,81 @@ export async function getFeaturedProperties(): Promise<Property[]> {
   return (data ?? []).map(mapRow);
 }
 
-// --- Market properties con paginación + filtro ---
-export async function getMarketProperties(opts: {
-  page?: number;
-  pageSize?: number;
-  listingType?: "all" | "sale" | "rent";
-}): Promise<{ properties: Property[]; totalCount: number }> {
-  const { page = 1, pageSize = 6, listingType = "all" } = opts;
+// --- Market properties con paginación + filtros avanzados ---
+export async function getMarketProperties(
+  opts: PropertyFilterParams = {}
+): Promise<{ properties: Property[]; totalCount: number }> {
+  const {
+    page = 1,
+    pageSize = 6,
+    listingType = "all",
+    query: searchTerm,
+    category,
+    minPrice,
+    maxPrice,
+    beds,
+    baths,
+    amenities,
+  } = opts;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
   let query = supabase
     .from("properties")
     .select("*, property_images(*)", { count: "exact" })
-    .eq("is_featured", false)
-    .order("created_at", { ascending: false })
-    .range(from, to);
+    .order("created_at", { ascending: false });
 
-  if (listingType !== "all") {
+  const hasSpecificFilter = Boolean(
+    searchTerm?.trim() ||
+      (category && category !== "all" && category.toLowerCase() !== "any type") ||
+      (minPrice != null && minPrice > 0) ||
+      (maxPrice != null && maxPrice > 0) ||
+      (beds != null && beds > 0) ||
+      (baths != null && baths > 0) ||
+      (amenities && amenities.length > 0)
+  );
+
+  // Si no se aplican filtros avanzados, conservamos solo propiedades no destacadas para la sección New in Market
+  if (!hasSpecificFilter) {
+    query = query.eq("is_featured", false);
+  }
+
+  if (listingType && listingType !== "all") {
     query = query.eq("listing_type", listingType);
   }
+
+  if (category && category !== "all" && category.toLowerCase() !== "any type") {
+    query = query.eq("category", category.toLowerCase());
+  }
+
+  if (minPrice != null && minPrice > 0) {
+    query = query.gte("price", minPrice);
+  }
+
+  if (maxPrice != null && maxPrice > 0) {
+    query = query.lte("price", maxPrice);
+  }
+
+  if (beds != null && beds > 0) {
+    query = query.gte("beds", beds);
+  }
+
+  if (baths != null && baths > 0) {
+    query = query.gte("baths", baths);
+  }
+
+  if (amenities && amenities.length > 0) {
+    query = query.contains("amenities", amenities);
+  }
+
+  if (searchTerm && searchTerm.trim()) {
+    const term = searchTerm.trim();
+    query = query.or(
+      `title.ilike.%${term}%,city.ilike.%${term}%,address.ilike.%${term}%,neighborhood.ilike.%${term}%,full_location.ilike.%${term}%,state_or_country.ilike.%${term}%`
+    );
+  }
+
+  query = query.range(from, to);
 
   const { data, count, error } = await query;
 
@@ -144,6 +199,18 @@ export async function getMarketProperties(opts: {
     properties: (data ?? []).map(mapRow),
     totalCount: count ?? 0,
   };
+}
+
+// --- Conteo rápido de propiedades que coinciden con los filtros ---
+export async function getFilteredPropertiesCount(
+  opts: Omit<PropertyFilterParams, "page" | "pageSize"> = {}
+): Promise<number> {
+  const { totalCount } = await getMarketProperties({
+    ...opts,
+    page: 1,
+    pageSize: 1,
+  });
+  return totalCount;
 }
 
 // --- Propiedad individual por SLUG ---

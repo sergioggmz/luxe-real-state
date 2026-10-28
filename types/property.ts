@@ -1,6 +1,26 @@
 export type ListingType = "sale" | "rent";
 
-export type PropertyCategory = "all" | "house" | "apartment" | "villa" | "penthouse";
+export type PropertyCategory =
+  | "all"
+  | "house"
+  | "apartment"
+  | "villa"
+  | "penthouse"
+  | "condo"
+  | "townhouse";
+
+export interface PropertyFilterParams {
+  page?: number;
+  pageSize?: number;
+  listingType?: "all" | "sale" | "rent";
+  query?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  beds?: number;
+  baths?: number;
+  amenities?: string[];
+}
 
 export interface PropertyLocation {
   address: string;
