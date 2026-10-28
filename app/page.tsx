@@ -77,7 +77,8 @@ export default async function HomePage({
       maxPriceNum ||
       bedsNum ||
       bathsNum ||
-      (amenitiesArr && amenitiesArr.length > 0)
+      (amenitiesArr && amenitiesArr.length > 0) ||
+      listingType !== "all"
   );
 
   const [featured, { properties: marketProps, totalCount }] = await Promise.all([

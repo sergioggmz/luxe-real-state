@@ -97,21 +97,26 @@ function mapRow(row: any): Property {
   };
 }
 
-// --- Featured properties (sin paginación) ---
-export async function getFeaturedProperties(): Promise<Property[]> {
-  const { data, error } = await supabase
-    .from("properties")
-    .select("*, property_images(*)")
-    .eq("is_featured", true)
-    .order("created_at", { ascending: false });
+// --- Featured properties (máximo 2 destacadas) ---
+export const getFeaturedProperties = cache(
+  async (limit: number = 2): Promise<Property[]> => {
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*, property_images(*)")
+      .eq("is_featured", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-  if (error) {
-    console.error("Error fetching featured properties:", error.message);
-    return [];
+    if (error) {
+      if (!error.message?.includes("aborted")) {
+        console.error("Error fetching featured properties:", error.message);
+      }
+      return [];
+    }
+
+    return (data ?? []).map(mapRow);
   }
-
-  return (data ?? []).map(mapRow);
-}
+);
 
 // --- Market properties con paginación + filtros avanzados ---
 export async function getMarketProperties(

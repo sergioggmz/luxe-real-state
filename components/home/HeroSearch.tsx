@@ -57,7 +57,8 @@ export function HeroSearch({
 
   const handleCategoryClick = (category: PropertyCategory) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (category === "all") {
+    // Si se hace clic en "All" o se vuelve a presionar la categoría activa, se deselecciona (toggle)
+    if (category === "all" || currentCategory === category) {
       params.delete("category");
     } else {
       params.set("category", category);
@@ -198,7 +199,7 @@ export function HeroSearch({
         </form>
 
         {/* Category Pills & Filters */}
-        <div className="flex items-center justify-center gap-3 overflow-x-auto hide-scroll py-2 px-4 -mx-4">
+        <div className="flex items-center justify-center gap-3 overflow-x-auto hide-scroll py-2 px-1">
           {categories.map((cat) => {
             const isActive = currentCategory === cat.value;
             return (

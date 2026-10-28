@@ -8,6 +8,11 @@ interface FeaturedSectionProps {
 }
 
 export function FeaturedSection({ properties }: FeaturedSectionProps) {
+  // Asegurar un límite estricto de 2 propiedades destacadas en todo momento
+  const displayedProperties = properties.slice(0, 2);
+
+  if (displayedProperties.length === 0) return null;
+
   return (
     <section className="mb-16">
       {/* Section Header */}
@@ -28,9 +33,9 @@ export function FeaturedSection({ properties }: FeaturedSectionProps) {
         </Link>
       </div>
 
-      {/* Grid of 2 Featured Cards */}
+      {/* Grid de exactamente hasta 2 Featured Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {properties.map((property) => (
+        {displayedProperties.map((property) => (
           <FeaturedCard key={property.id} property={property} />
         ))}
       </div>
