@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { PropertyFilterParams } from "@/types/property";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -13,23 +14,19 @@ interface FilterModalProps {
 }
 
 const AMENITIES_LIST = [
-  { id: "Swimming Pool", label: "Swimming Pool", icon: "pool" },
-  { id: "Gym", label: "Gym", icon: "fitness_center" },
-  { id: "Parking", label: "Parking", icon: "local_parking" },
-  { id: "Air Conditioning", label: "Air Conditioning", icon: "ac_unit" },
-  { id: "High-speed Wifi", label: "High-speed Wifi", icon: "wifi" },
-  { id: "Patio / Terrace", label: "Patio / Terrace", icon: "deck" },
+  { id: "Swimming Pool", icon: "pool" },
+  { id: "Gym", icon: "fitness_center" },
+  { id: "Parking", icon: "local_parking" },
+  { id: "Air Conditioning", icon: "ac_unit" },
+  { id: "High-speed Wifi", icon: "wifi" },
+  { id: "Patio / Terrace", icon: "deck" },
 ];
 
 const MIN_PRICE_LIMIT = 0;
 const MAX_PRICE_LIMIT = 15000000;
 const PRICE_STEP = 50000;
 
-function formatPriceNumber(val: number): string {
-  return new Intl.NumberFormat("en-US").format(val);
-}
-
-function formatPriceRangeLabel(min: number, max: number): string {
+function formatPriceRangeLabel(min: number, max: number, allPrices: string): string {
   const formatShort = (val: number) => {
     if (val >= 1000000) {
       const millions = val / 1000000;
@@ -42,7 +39,7 @@ function formatPriceRangeLabel(min: number, max: number): string {
   };
 
   if (min === MIN_PRICE_LIMIT && max >= MAX_PRICE_LIMIT) {
-    return "All Prices";
+    return allPrices;
   }
   return `${formatShort(min)} – ${formatShort(max)}`;
 }
@@ -54,6 +51,8 @@ export function FilterModal({
   onApply,
   totalMarketCount = 38,
 }: FilterModalProps) {
+  const { t, formatNumber } = useTranslations();
+  const formatPriceNumber = (val: number): string => formatNumber(val);
   // Estado local para los filtros dentro del modal
   const [location, setLocation] = useState(initialFilters.query || "");
   const [minPrice, setMinPrice] = useState(initialFilters.minPrice ?? MIN_PRICE_LIMIT);
@@ -139,14 +138,14 @@ export function FilterModal({
 
   // Manejo de inputs de texto de precios
   const handleMinPriceBlur = () => {
-    const parsed = parseInt(minPriceText.replace(/[^0-9]/g, ""), 10) || MIN_PRICE_LIMIT;
+    const parsed = parseInt(minPriceText.replace(/\D/g, ""), 10) || MIN_PRICE_LIMIT;
     const clamped = Math.max(MIN_PRICE_LIMIT, Math.min(parsed, maxPrice - PRICE_STEP));
     setMinPrice(clamped);
     setMinPriceText(formatPriceNumber(clamped));
   };
 
   const handleMaxPriceBlur = () => {
-    const parsed = parseInt(maxPriceText.replace(/[^0-9]/g, ""), 10) || MAX_PRICE_LIMIT;
+    const parsed = parseInt(maxPriceText.replace(/\D/g, ""), 10) || MAX_PRICE_LIMIT;
     const clamped = Math.min(MAX_PRICE_LIMIT, Math.max(parsed, minPrice + PRICE_STEP));
     setMaxPrice(clamped);
     setMaxPriceText(formatPriceNumber(clamped));
@@ -212,12 +211,12 @@ export function FilterModal({
             id="filter-modal-title"
             className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white"
           >
-            Filters
+            {t("filters.title")}
           </h1>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close filters modal"
+            aria-label={t("filters.close")}
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 cursor-pointer"
           >
             <Icon name="close" className="text-xl" />
@@ -229,7 +228,7 @@ export function FilterModal({
           {/* Section 1: Location */}
           <section>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-              Location
+              {t("filters.location")}
             </label>
             <div className="relative group">
               <span className="material-icons absolute left-4 top-3.5 text-gray-400 group-focus-within:text-mosque transition-colors pointer-events-none">
@@ -237,7 +236,7 @@ export function FilterModal({
               </span>
               <input
                 className="w-full pl-12 pr-4 py-3 bg-[#f5f8f6] dark:bg-gray-800 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-mosque focus:bg-white dark:focus:bg-gray-800 transition-all shadow-xs outline-none"
-                placeholder="City, neighborhood, or address"
+                placeholder={t("filters.locationPlaceholder")}
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -249,10 +248,10 @@ export function FilterModal({
           <section>
             <div className="flex justify-between items-end mb-4">
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Price Range
+                {t("filters.priceRange")}
               </label>
               <span className="text-sm font-medium text-mosque">
-                {formatPriceRangeLabel(minPrice, maxPrice)}
+                {formatPriceRangeLabel(minPrice, maxPrice, t("filters.allPrices"))}
               </span>
             </div>
 
@@ -278,7 +277,7 @@ export function FilterModal({
                 step={PRICE_STEP}
                 value={minPrice}
                 onChange={handleMinSliderChange}
-                aria-label="Minimum price"
+                aria-label={t("filters.minPriceLabel")}
                 className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none cursor-pointer z-20 range-thumb-interactive"
               />
               <input
@@ -288,7 +287,7 @@ export function FilterModal({
                 step={PRICE_STEP}
                 value={maxPrice}
                 onChange={handleMaxSliderChange}
-                aria-label="Maximum price"
+                aria-label={t("filters.maxPriceLabel")}
                 className="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none cursor-pointer z-20 range-thumb-interactive"
               />
             </div>
@@ -297,7 +296,7 @@ export function FilterModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-[#f5f8f6] dark:bg-gray-800 p-3 rounded-lg border border-transparent focus-within:border-mosque/30 transition-colors">
                 <label className="block text-[10px] text-gray-500 uppercase font-medium mb-1">
-                  Min Price
+                  {t("filters.minPrice")}
                 </label>
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">$</span>
@@ -313,7 +312,7 @@ export function FilterModal({
 
               <div className="bg-[#f5f8f6] dark:bg-gray-800 p-3 rounded-lg border border-transparent focus-within:border-mosque/30 transition-colors">
                 <label className="block text-[10px] text-gray-500 uppercase font-medium mb-1">
-                  Max Price
+                  {t("filters.maxPrice")}
                 </label>
                 <div className="flex items-center">
                   <span className="text-gray-400 mr-1">$</span>
@@ -334,7 +333,7 @@ export function FilterModal({
             {/* Property Type Dropdown */}
             <div className="space-y-3">
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Property Type
+                {t("filters.propertyType")}
               </label>
               <div className="relative">
                 <select
@@ -342,13 +341,13 @@ export function FilterModal({
                   onChange={(e) => setPropertyType(e.target.value)}
                   className="w-full bg-[#f5f8f6] dark:bg-gray-800 border-0 rounded-lg py-3 pl-4 pr-10 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-mosque cursor-pointer outline-none text-sm font-medium"
                 >
-                  <option value="">Any Type</option>
-                  <option value="house">House</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="condo">Condo</option>
-                  <option value="townhouse">Townhouse</option>
-                  <option value="villa">Villa</option>
-                  <option value="penthouse">Penthouse</option>
+                  <option value="">{t("filters.anyType")}</option>
+                  <option value="house">{t("categories.house")}</option>
+                  <option value="apartment">{t("categories.apartment")}</option>
+                  <option value="condo">{t("categories.condo")}</option>
+                  <option value="townhouse">{t("categories.townhouse")}</option>
+                  <option value="villa">{t("categories.villa")}</option>
+                  <option value="penthouse">{t("categories.penthouse")}</option>
                 </select>
                 <span className="material-icons absolute right-3 top-3 text-gray-400 pointer-events-none">
                   expand_more
@@ -361,7 +360,7 @@ export function FilterModal({
               {/* Beds */}
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Bedrooms
+                  {t("filters.bedrooms")}
                 </span>
                 <div className="flex items-center space-x-3 bg-[#f5f8f6] dark:bg-gray-800 rounded-full p-1">
                   <button
@@ -373,7 +372,7 @@ export function FilterModal({
                     <Icon name="remove" className="text-base" />
                   </button>
                   <span className="text-sm font-semibold w-6 text-center text-gray-900 dark:text-white">
-                    {beds === 0 ? "Any" : `${beds}+`}
+                    {beds === 0 ? t("common.any") : `${beds}+`}
                   </span>
                   <button
                     type="button"
@@ -388,7 +387,7 @@ export function FilterModal({
               {/* Baths */}
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Bathrooms
+                  {t("filters.bathrooms")}
                 </span>
                 <div className="flex items-center space-x-3 bg-[#f5f8f6] dark:bg-gray-800 rounded-full p-1">
                   <button
@@ -400,7 +399,7 @@ export function FilterModal({
                     <Icon name="remove" className="text-base" />
                   </button>
                   <span className="text-sm font-semibold w-6 text-center text-gray-900 dark:text-white">
-                    {baths === 0 ? "Any" : `${baths}+`}
+                    {baths === 0 ? t("common.any") : `${baths}+`}
                   </span>
                   <button
                     type="button"
@@ -417,7 +416,7 @@ export function FilterModal({
           {/* Section 4: Amenities */}
           <section>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-              Amenities &amp; Features
+              {t("filters.amenities")}
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {AMENITIES_LIST.map((amenity) => {
@@ -439,7 +438,7 @@ export function FilterModal({
                         isActive ? "text-mosque dark:text-hint-green" : "text-gray-400"
                       }`}
                     />
-                    <span>{amenity.label}</span>
+                    <span>{t(`amenities.${amenity.id}`)}</span>
                     {isActive && (
                       <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-mosque rounded-full" />
                     )}
@@ -457,7 +456,7 @@ export function FilterModal({
             onClick={handleClear}
             className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors underline decoration-gray-300 underline-offset-4 cursor-pointer"
           >
-            Clear all filters
+            {t("filters.clearAll")}
           </button>
           <button
             type="button"
@@ -465,7 +464,9 @@ export function FilterModal({
             className="bg-mosque hover:bg-mosque/90 text-white px-8 py-3 rounded-lg font-medium shadow-lg shadow-mosque/30 transition-all hover:shadow-mosque/40 flex items-center gap-2 transform active:scale-95 cursor-pointer"
           >
             <span>
-              Show {previewCount} {previewCount === 1 ? "Home" : "Homes"}
+              {t(previewCount === 1 ? "filters.showHome" : "filters.showHomes", {
+                count: previewCount,
+              })}
             </span>
             <Icon name="arrow_forward" className="text-sm" />
           </button>

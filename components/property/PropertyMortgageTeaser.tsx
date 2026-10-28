@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface PropertyMortgageTeaserProps {
   price: number;
 }
 
 export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
+  const { t, formatNumber } = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [downPaymentPercent, setDownPaymentPercent] = useState(20);
   const [termYears, setTermYears] = useState(30);
@@ -34,13 +36,13 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
             <span className="material-icons">calculate</span>
           </div>
           <div>
-            <h3 className="font-semibold text-nordic">Estimated Payment</h3>
+            <h3 className="font-semibold text-nordic">{t("mortgage.estimatedPayment")}</h3>
             <p className="text-sm text-nordic/60">
-              Starting from{" "}
+              {t("mortgage.startingFrom")}{" "}
               <strong className="text-mosque font-bold">
-                ${monthlyPayment.toLocaleString()}/mo
+                ${formatNumber(monthlyPayment)}{t("mortgage.perMonth")}
               </strong>{" "}
-              with {downPaymentPercent}% down
+              {t("mortgage.withDown", { percent: downPaymentPercent })}
             </p>
           </div>
         </div>
@@ -50,7 +52,7 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
           onClick={() => setIsOpen(true)}
           className="whitespace-nowrap px-4 py-2.5 bg-white border border-nordic/15 rounded-lg text-sm font-semibold hover:border-mosque hover:text-mosque transition-colors text-nordic cursor-pointer shadow-xs"
         >
-          Calculate Mortgage
+          {t("mortgage.calculate")}
         </button>
       </div>
 
@@ -71,9 +73,9 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
                 <span className="material-icons text-xl">calculate</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-nordic">Mortgage Calculator</h3>
+                <h3 className="text-xl font-bold text-nordic">{t("mortgage.title")}</h3>
                 <p className="text-xs text-nordic/60">
-                  Property Value: ${price.toLocaleString()}
+                  {t("mortgage.propertyValue", { value: `$${formatNumber(price)}` })}
                 </p>
               </div>
             </div>
@@ -81,11 +83,11 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
             {/* Resultado estimado */}
             <div className="bg-mosque/5 p-5 rounded-xl border border-mosque/10 text-center mb-6">
               <span className="text-xs uppercase tracking-wider text-nordic/60">
-                Estimated Monthly Principal & Interest
+                {t("mortgage.monthlyLabel")}
               </span>
               <div className="text-3xl sm:text-4xl font-bold text-mosque mt-1">
-                ${monthlyPayment.toLocaleString()}
-                <span className="text-base font-normal text-nordic/60">/mo</span>
+                ${formatNumber(monthlyPayment)}
+                <span className="text-base font-normal text-nordic/60">{t("mortgage.perMonth")}</span>
               </div>
             </div>
 
@@ -93,9 +95,9 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
               {/* Down payment slider */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium text-nordic">Down Payment</span>
+                  <span className="font-medium text-nordic">{t("mortgage.downPayment")}</span>
                   <span className="font-semibold text-mosque">
-                    {downPaymentPercent}% (${((price * downPaymentPercent) / 100).toLocaleString()})
+                    {downPaymentPercent}% (${formatNumber((price * downPaymentPercent) / 100)})
                   </span>
                 </div>
                 <input
@@ -112,8 +114,8 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
               {/* Loan Term */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium text-nordic">Loan Term</span>
-                  <span className="font-semibold text-mosque">{termYears} Years</span>
+                  <span className="font-medium text-nordic">{t("mortgage.loanTerm")}</span>
+                  <span className="font-semibold text-mosque">{t("mortgage.years", { count: termYears })}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {[15, 20, 30].map((term) => (
@@ -127,7 +129,7 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
                           : "bg-white border-slate-200 text-nordic hover:border-mosque"
                       }`}
                     >
-                      {term} Years
+                      {t("mortgage.years", { count: term })}
                     </button>
                   ))}
                 </div>
@@ -136,7 +138,7 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
               {/* Interest Rate */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium text-nordic">Interest Rate</span>
+                  <span className="font-medium text-nordic">{t("mortgage.interestRate")}</span>
                   <span className="font-semibold text-mosque">{interestRate}%</span>
                 </div>
                 <input
@@ -156,7 +158,7 @@ export function PropertyMortgageTeaser({ price }: PropertyMortgageTeaserProps) {
               onClick={() => setIsOpen(false)}
               className="mt-6 w-full bg-mosque hover:bg-primary-hover text-white py-3 rounded-lg font-medium transition-colors cursor-pointer"
             >
-              Done
+              {t("mortgage.done")}
             </button>
           </div>
         </div>

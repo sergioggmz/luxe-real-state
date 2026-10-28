@@ -3,18 +3,21 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Property, PropertyAgent } from "@/types/property";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getAgentTitle } from "@/i18n/labels";
 
 interface PropertyAgentCardProps {
   property: Property;
 }
 
 export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
+  const { t, has } = useTranslations();
   const [modalOpen, setModalOpen] = useState<"visit" | "contact" | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const defaultAgent: PropertyAgent = {
     name: "Sarah Jenkins",
-    title: "Top Rated Agent",
+    title: t("agent.topRated"),
     avatar:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuD4TxUmdQRb2VMjuaNxLEwLorv_dgHzoET2_wL5toSvew6nhtziaR3DX-U69DBN7J74yO6oKokpw8tqEFutJf13MeXghCy7FwZuAxnoJel6FYcKeCRUVinpZtrNnkZvXd-MY5_2MAtRD7JP5BieHixfCaeAPW04jm-y-nvF3HIrwcZ_HRDk_MrNP5WiPV3u9zNrEgM-SQoWGh4xLVSV444aZAbVl03mjjsW5WBpIeodCyqJxprTDp6Q157D06VxcdUSCf-l9UKQT-w",
     phone: "+1 (555) 234-5678",
@@ -41,7 +44,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             {property.priceFormatted}
             {property.rentalPeriod && (
               <span className="text-xl font-normal text-nordic/60">
-                /{property.rentalPeriod}
+                /{property.rentalPeriod === "yr" ? t("common.perYearShort") : t("common.perMonthShort")}
               </span>
             )}
           </h1>
@@ -69,7 +72,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             <h3 className="font-semibold text-nordic text-base">{agent.name}</h3>
             <div className="flex items-center gap-1 text-xs text-mosque font-medium">
               <span className="material-icons text-[14px]">star</span>
-              <span>{agent.title}</span>
+              <span>{getAgentTitle(agent.title, t, has)}</span>
             </div>
           </div>
 
@@ -77,7 +80,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
           <div className="ml-auto flex gap-2">
             <button
               type="button"
-              aria-label={`Chat with ${agent.name}`}
+              aria-label={t("agent.chatWith", { name: agent.name })}
               onClick={() => setModalOpen("contact")}
               className="p-2.5 rounded-full bg-mosque/10 text-mosque hover:bg-mosque hover:text-white transition-colors cursor-pointer"
             >
@@ -85,7 +88,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             </button>
             <a
               href={`tel:${agent.phone}`}
-              aria-label={`Call ${agent.name}`}
+              aria-label={t("agent.call", { name: agent.name })}
               className="p-2.5 rounded-full bg-mosque/10 text-mosque hover:bg-mosque hover:text-white transition-colors cursor-pointer inline-flex items-center justify-center"
             >
               <span className="material-icons text-sm">call</span>
@@ -103,7 +106,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             <span className="material-icons text-xl group-hover:scale-110 transition-transform">
               calendar_today
             </span>
-            <span>Schedule Visit</span>
+            <span>{t("agent.scheduleVisit")}</span>
           </button>
 
           <button
@@ -112,7 +115,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             className="w-full bg-transparent border border-nordic/15 hover:border-mosque text-nordic/80 hover:text-mosque py-4 px-6 rounded-lg font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <span className="material-icons text-xl">mail_outline</span>
-            <span>Contact Agent</span>
+            <span>{t("agent.contactAgent")}</span>
           </button>
         </div>
       </div>
@@ -124,6 +127,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
             <button
               type="button"
               onClick={() => setModalOpen(null)}
+              aria-label={t("agent.close")}
               className="absolute top-4 right-4 text-nordic/40 hover:text-nordic cursor-pointer"
             >
               <span className="material-icons">close</span>
@@ -134,15 +138,15 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
                 <div className="w-12 h-12 bg-mosque/10 text-mosque rounded-full flex items-center justify-center mx-auto">
                   <span className="material-icons text-2xl">check</span>
                 </div>
-                <h3 className="text-xl font-bold text-nordic">Request Received!</h3>
+                <h3 className="text-xl font-bold text-nordic">{t("agent.requestReceived")}</h3>
                 <p className="text-sm text-nordic/60">
-                  {agent.name} has been notified and will contact you shortly to coordinate details.
+                  {t("agent.notified", { name: agent.name })}
                 </p>
               </div>
             ) : (
               <div>
                 <h3 className="text-xl font-bold text-nordic mb-1">
-                  {modalOpen === "visit" ? "Schedule a Private Visit" : "Contact the Agent"}
+                  {modalOpen === "visit" ? t("agent.scheduleTitle") : t("agent.contactTitle")}
                 </h3>
                 <p className="text-xs text-nordic/60 mb-6">
                   {property.title} · {property.location.city}
@@ -151,19 +155,19 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-nordic/70 uppercase tracking-wider mb-1">
-                      Your Full Name
+                      {t("agent.fullName")}
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Jane Doe"
+                      placeholder={t("agent.fullNamePlaceholder")}
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-mosque text-sm text-nordic"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-nordic/70 uppercase tracking-wider mb-1">
-                      Email Address
+                      {t("agent.email")}
                     </label>
                     <input
                       type="email"
@@ -175,7 +179,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
 
                   <div>
                     <label className="block text-xs font-semibold text-nordic/70 uppercase tracking-wider mb-1">
-                      Phone Number
+                      {t("agent.phone")}
                     </label>
                     <input
                       type="tel"
@@ -188,7 +192,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
                   {modalOpen === "visit" && (
                     <div>
                       <label className="block text-xs font-semibold text-nordic/70 uppercase tracking-wider mb-1">
-                        Preferred Date
+                        {t("agent.preferredDate")}
                       </label>
                       <input
                         type="date"
@@ -202,7 +206,7 @@ export function PropertyAgentCard({ property }: PropertyAgentCardProps) {
                     type="submit"
                     className="w-full bg-mosque hover:bg-primary-hover text-white py-3.5 rounded-lg font-medium transition-all shadow-md shadow-mosque/20 cursor-pointer mt-2"
                   >
-                    Confirm {modalOpen === "visit" ? "Visit Request" : "Message"}
+                    {modalOpen === "visit" ? t("agent.confirmVisit") : t("agent.confirmMessage")}
                   </button>
                 </form>
               </div>

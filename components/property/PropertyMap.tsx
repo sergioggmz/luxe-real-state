@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface PropertyMapProps {
   latitude?: number;
@@ -16,6 +17,7 @@ export function PropertyMap({
   title,
   address,
 }: PropertyMapProps) {
+  const { t } = useTranslations();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
@@ -112,7 +114,7 @@ export function PropertyMap({
           className="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-xs font-medium px-2.5 py-1.5 rounded shadow-sm text-nordic hover:text-mosque transition-colors z-10 flex items-center gap-1 backdrop-blur-xs cursor-pointer"
         >
           <span className="material-icons text-xs">open_in_new</span>
-          <span>View on Map</span>
+          <span>{t("property.viewOnMap")}</span>
         </a>
       </div>
       {address && (

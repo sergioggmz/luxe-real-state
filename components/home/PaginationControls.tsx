@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "@/i18n/I18nProvider";
+
 interface PaginationControlsProps {
   currentPage: number;
   totalPages: number;
@@ -13,10 +15,12 @@ export function PaginationControls({
   totalCount,
   onPageChange,
 }: PaginationControlsProps) {
+  const { t } = useTranslations();
+
   if (totalPages <= 1) {
     return (
       <div className="mt-12 text-center text-sm text-nordic-muted font-light">
-        Showing all {totalCount} properties
+        {t("pagination.showingAll", { count: totalCount })}
       </div>
     );
   }
@@ -52,7 +56,7 @@ export function PaginationControls({
           disabled={currentPage === 1}
           className="px-4 py-2 rounded-lg border border-nordic-dark/10 text-sm font-medium text-nordic-dark transition-all hover:border-mosque hover:text-mosque disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-nordic-dark/10 disabled:hover:text-nordic-dark cursor-pointer"
         >
-          ← Prev
+          {t("pagination.prev")}
         </button>
 
         {/* Páginas numeradas */}
@@ -87,13 +91,13 @@ export function PaginationControls({
           disabled={currentPage === totalPages}
           className="px-4 py-2 rounded-lg border border-nordic-dark/10 text-sm font-medium text-nordic-dark transition-all hover:border-mosque hover:text-mosque disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-nordic-dark/10 disabled:hover:text-nordic-dark cursor-pointer"
         >
-          Next →
+          {t("pagination.next")}
         </button>
       </div>
 
       {/* Info de paginación */}
       <p className="text-xs text-nordic-muted">
-        Page {currentPage} of {totalPages} · {totalCount} properties total
+        {t("pagination.info", { current: currentPage, total: totalPages, count: totalCount })}
       </p>
     </div>
   );

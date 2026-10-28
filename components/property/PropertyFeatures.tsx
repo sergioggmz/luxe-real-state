@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "@/i18n/I18nProvider";
 import { PropertySpecs } from "@/types/property";
 
 interface PropertyFeaturesProps {
@@ -6,32 +9,33 @@ interface PropertyFeaturesProps {
 }
 
 export function PropertyFeatures({ specs, garage = 1 }: PropertyFeaturesProps) {
+  const { t, formatNumber } = useTranslations();
   const features = [
     {
       icon: "square_foot",
-      value: specs.areaSqm.toLocaleString(),
-      label: "Square Meters",
+      value: formatNumber(specs.areaSqm),
+      label: t("property.squareMeters"),
     },
     {
       icon: "bed",
       value: specs.beds,
-      label: "Bedrooms",
+      label: t("property.bedrooms"),
     },
     {
       icon: "shower",
       value: specs.baths,
-      label: "Bathrooms",
+      label: t("property.bathrooms"),
     },
     {
       icon: "directions_car",
       value: garage,
-      label: "Garage",
+      label: t("property.garage"),
     },
   ];
 
   return (
     <section className="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-mosque/5">
-      <h2 className="text-lg font-semibold mb-6 text-nordic">Property Features</h2>
+      <h2 className="text-lg font-semibold mb-6 text-nordic">{t("property.features")}</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {features.map((feat) => (
           <div

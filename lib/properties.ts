@@ -1,10 +1,30 @@
 import { cache } from "react";
 import { supabase } from "@/lib/supabase";
 import { Property, PropertyFilterParams, PropertyImage } from "@/types/property";
+import { Locale, defaultLocale } from "@/i18n/config";
 
-// Convierte una fila plana o con joins de la BD al tipo anidado Property del front
+// Convierte una fila plana o con joins de la BD al tipo anidado Property del front,
+// aplicando la traducción de título y descripción si existe para el locale solicitado.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRow(row: any): Property {
+function mapRow(row: any, locale: Locale = defaultLocale): Property {
+  // Extraer traducción de la relación property_translations si vino en el join
+  const translation = Array.isArray(row.property_translations)
+    ? row.property_translations[0]
+    : null;
+
+  const translatedTitle = (translation?.title as string) || (row.title as string);
+  const translatedDescription =
+    (translation?.description as string) || (row.description as string | undefined);
+
+  const fallbackAlt =
+    locale === "es"
+      ? "Propiedad de lujo"
+      : locale === "fr"
+      ? "Propriété de prestige"
+      : "Luxury Property";
+
+  const photoLabel = locale === "es" ? "Foto" : "Photo";
+
   // Procesar imágenes unificadas: desde relación 'property_images', arreglo 'images' o fallback
   let images: PropertyImage[] = [];
 
@@ -16,7 +36,9 @@ function mapRow(row: any): Property {
         id: (img.id as string) || `${row.id}-${idx}`,
         propertyId: (img.property_id as string) || (row.id as string),
         imageUrl: img.image_url as string,
-        imageAlt: (img.image_alt as string | undefined) || (idx === 0 ? row.image_alt || row.title : `${row.title} - Photo ${idx + 1}`),
+        imageAlt:
+          (img.image_alt as string | undefined) ||
+          (idx === 0 ? translatedTitle : `${translatedTitle} - ${photoLabel} ${idx + 1}`),
         displayOrder: Number(img.display_order ?? idx),
       }));
   } else if (Array.isArray(row.images) && row.images.length > 0) {
@@ -24,7 +46,7 @@ function mapRow(row: any): Property {
       id: `${row.id}-${idx}`,
       propertyId: row.id as string,
       imageUrl: url,
-      imageAlt: idx === 0 ? row.image_alt || row.title : `${row.title} - Photo ${idx + 1}`,
+      imageAlt: idx === 0 ? translatedTitle : `${translatedTitle} - ${photoLabel} ${idx + 1}`,
       displayOrder: idx,
     }));
   } else if (row.image_url) {
@@ -49,12 +71,12 @@ function mapRow(row: any): Property {
   const primaryImageAlt =
     images[0]?.imageAlt ||
     row.image_alt ||
-    row.title ||
-    "Luxury Property";
+    translatedTitle ||
+    fallbackAlt;
 
   return {
     id: row.id as string,
-    title: row.title as string,
+    title: translatedTitle,
     slug: (row.slug as string) || (row.id as string),
     price: Number(row.price),
     priceFormatted: row.price_formatted as string,
@@ -63,7 +85,7 @@ function mapRow(row: any): Property {
     category: row.category as Property["category"],
     badge: row.badge as string | undefined,
     isFeatured: row.is_featured as boolean | undefined,
-    description: row.description as string | undefined,
+    description: translatedDescription,
     amenities: Array.isArray(row.amenities) ? row.amenities : [],
     garage: row.garage != null ? Number(row.garage) : 1,
     latitude: row.latitude != null ? Number(row.latitude) : undefined,
@@ -97,15 +119,26 @@ function mapRow(row: any): Property {
   };
 }
 
-// --- Featured properties (máximo 2 destacadas) ---
+// --- Featured properties (máximo 2 destacadas) con soporte de idioma ---
 export const getFeaturedProperties = cache(
-  async (limit: number = 2): Promise<Property[]> => {
-    const { data, error } = await supabase
+  async (limit: number = 2, locale: Locale = defaultLocale): Promise<Property[]> => {
+    const selectQuery =
+      locale !== "en"
+        ? "*, property_images(*), property_translations(locale,title,description)"
+        : "*, property_images(*)";
+
+    let query = supabase
       .from("properties")
-      .select("*, property_images(*)")
+      .select(selectQuery)
       .eq("is_featured", true)
       .order("created_at", { ascending: false })
       .limit(limit);
+
+    if (locale !== "en") {
+      query = query.eq("property_translations.locale", locale);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       if (!error.message?.includes("aborted")) {
@@ -114,13 +147,14 @@ export const getFeaturedProperties = cache(
       return [];
     }
 
-    return (data ?? []).map(mapRow);
+    return (data ?? []).map((row) => mapRow(row, locale));
   }
 );
 
-// --- Market properties con paginación + filtros avanzados ---
+// --- Market properties con paginación + filtros avanzados + idioma ---
 export async function getMarketProperties(
-  opts: PropertyFilterParams = {}
+  opts: PropertyFilterParams = {},
+  locale: Locale = defaultLocale
 ): Promise<{ properties: Property[]; totalCount: number }> {
   const {
     page = 1,
@@ -137,10 +171,19 @@ export async function getMarketProperties(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const selectQuery =
+    locale !== "en"
+      ? "*, property_images(*), property_translations(locale,title,description)"
+      : "*, property_images(*)";
+
   let query = supabase
     .from("properties")
-    .select("*, property_images(*)", { count: "exact" })
+    .select(selectQuery, { count: "exact" })
     .order("created_at", { ascending: false });
+
+  if (locale !== "en") {
+    query = query.eq("property_translations.locale", locale);
+  }
 
   const hasSpecificFilter = Boolean(
     searchTerm?.trim() ||
@@ -202,7 +245,7 @@ export async function getMarketProperties(
   }
 
   return {
-    properties: (data ?? []).map(mapRow),
+    properties: (data ?? []).map((row) => mapRow(row, locale)),
     totalCount: count ?? 0,
   };
 }
@@ -219,23 +262,29 @@ export async function getFilteredPropertiesCount(
   return totalCount;
 }
 
-// --- Propiedad individual por SLUG (memoizado con React.cache) ---
+// --- Propiedad individual por SLUG con memoización por (slug, locale) ---
 export const getPropertyBySlug = cache(
-  async (slug: string): Promise<Property | null> => {
-    let result = await supabase
+  async (slug: string, locale: Locale = defaultLocale): Promise<Property | null> => {
+    const selectQuery =
+      locale !== "en"
+        ? "*, property_images(*), property_translations(locale,title,description)"
+        : "*, property_images(*)";
+
+    let query = supabase
       .from("properties")
-      .select("*, property_images(*)")
-      .eq("slug", slug)
-      .maybeSingle();
+      .select(selectQuery)
+      .eq("slug", slug);
+
+    if (locale !== "en") {
+      query = query.eq("property_translations.locale", locale);
+    }
+
+    let result = await query.maybeSingle();
 
     // Reintento automático en caso de cancelación o interrupción transitoria de la conexión
     if (result.error && result.error.message?.includes("aborted")) {
       await new Promise((r) => setTimeout(r, 120));
-      result = await supabase
-        .from("properties")
-        .select("*, property_images(*)")
-        .eq("slug", slug)
-        .maybeSingle();
+      result = await query.maybeSingle();
     }
 
     if (result.error) {
@@ -247,15 +296,13 @@ export const getPropertyBySlug = cache(
 
     if (!result.data) return null;
 
-    return mapRow(result.data);
+    return mapRow(result.data, locale);
   }
 );
 
 // --- Obtener todos los slugs para Static Generation / Sitemap ---
 export async function getAllPropertySlugs(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("properties")
-    .select("slug");
+  const { data, error } = await supabase.from("properties").select("slug");
 
   if (error) {
     console.error("Error fetching all property slugs:", error.message);

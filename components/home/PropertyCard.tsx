@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { Property } from "@/types/property";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getBadgeLabel } from "@/i18n/labels";
 
 interface PropertyCardProps {
   property: Property;
@@ -11,12 +13,15 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, className = "" }: PropertyCardProps) {
+  const { t, has } = useTranslations();
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false);
   const mainImage = property.images?.[0]?.imageUrl || property.imageUrl;
   const mainAlt = property.images?.[0]?.imageAlt || property.imageAlt || property.title;
 
   const isRent = property.listingType === "rent";
-  const badgeText = property.badge || (isRent ? "FOR RENT" : "FOR SALE");
+  const badgeText =
+    getBadgeLabel(property.badge, t, has) ||
+    (isRent ? t("card.forRent") : t("card.forSale"));
   const badgeBg = isRent ? "bg-mosque/90" : "bg-nordic-dark/90";
 
   return (
@@ -33,7 +38,7 @@ export function PropertyCard({ property, className = "" }: PropertyCardProps) {
 
           <button
             type="button"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            aria-label={isFavorite ? t("card.removeFavorite") : t("card.addFavorite")}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -62,7 +67,7 @@ export function PropertyCard({ property, className = "" }: PropertyCardProps) {
               {property.priceFormatted}
               {property.rentalPeriod && (
                 <span className="text-sm font-normal text-nordic-muted">
-                  /{property.rentalPeriod}
+                  /{property.rentalPeriod === "yr" ? t("common.perYearShort") : t("common.perMonthShort")}
                 </span>
               )}
             </h3>

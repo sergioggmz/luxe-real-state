@@ -4,15 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { Property } from "@/types/property";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getBadgeLabel } from "@/i18n/labels";
 
 interface FeaturedCardProps {
   property: Property;
 }
 
 export function FeaturedCard({ property }: FeaturedCardProps) {
+  const { t, has, formatNumber } = useTranslations();
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false);
   const mainImage = property.images?.[0]?.imageUrl || property.imageUrl;
   const mainAlt = property.images?.[0]?.imageAlt || property.imageAlt || property.title;
+  const badgeLabel = getBadgeLabel(property.badge, t, has);
 
   return (
     <Link href={`/properties/${property.slug}`} className="block group">
@@ -26,15 +30,15 @@ export function FeaturedCard({ property }: FeaturedCardProps) {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
 
-          {property.badge && (
+          {badgeLabel && (
             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-nordic-dark shadow-sm">
-              {property.badge}
+              {badgeLabel}
             </div>
           )}
 
           <button
             type="button"
-            aria-label={isFavorite ? "Remove from saved homes" : "Save property"}
+            aria-label={isFavorite ? t("card.removeSaved") : t("card.saveProperty")}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -73,15 +77,15 @@ export function FeaturedCard({ property }: FeaturedCardProps) {
           <div className="flex items-center gap-6 mt-6 pt-6 border-t border-nordic-dark/5">
             <div className="flex items-center gap-2 text-nordic-muted text-sm">
               <Icon name="king_bed" className="text-lg" />
-              <span>{property.specs.beds} Beds</span>
+              <span>{t("card.beds", { count: property.specs.beds })}</span>
             </div>
             <div className="flex items-center gap-2 text-nordic-muted text-sm">
               <Icon name="bathtub" className="text-lg" />
-              <span>{property.specs.baths} Baths</span>
+              <span>{t("card.baths", { count: property.specs.baths })}</span>
             </div>
             <div className="flex items-center gap-2 text-nordic-muted text-sm">
               <Icon name="square_foot" className="text-lg" />
-              <span>{property.specs.areaSqm.toLocaleString()} m²</span>
+              <span>{formatNumber(property.specs.areaSqm)} m²</span>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { PropertyCard } from "@/components/home/PropertyCard";
 import { PaginationControls } from "@/components/home/PaginationControls";
 import { Property } from "@/types/property";
 import { Icon } from "@/components/ui/Icon";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface MarketSectionProps {
   properties: Property[];
@@ -14,10 +15,10 @@ interface MarketSectionProps {
   activeFilter: "all" | "sale" | "rent";
 }
 
-const FILTER_TABS: { label: string; value: "all" | "sale" | "rent" }[] = [
-  { label: "All", value: "all" },
-  { label: "Buy", value: "sale" },
-  { label: "Rent", value: "rent" },
+const FILTER_TABS: { labelKey: string; value: "all" | "sale" | "rent" }[] = [
+  { labelKey: "common.all", value: "all" },
+  { labelKey: "market.buy", value: "sale" },
+  { labelKey: "market.rent", value: "rent" },
 ];
 
 export function MarketSection({
@@ -27,6 +28,7 @@ export function MarketSection({
   totalCount,
   activeFilter,
 }: MarketSectionProps) {
+  const { t, has, formatNumber } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -115,18 +117,18 @@ export function MarketSection({
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-light text-nordic-dark">
-            {isFiltering ? "Search Results" : "New in Market"}
+            {isFiltering ? t("market.searchResults") : t("market.newInMarket")}
           </h2>
           <p className="text-nordic-muted mt-1 text-sm">
             {isFiltering
-              ? `Found ${totalCount} ${totalCount === 1 ? "property" : "properties"} matching your criteria.`
-              : "Fresh opportunities added this week."}
+              ? t(totalCount === 1 ? "market.foundProperty" : "market.foundProperties", { count: totalCount })
+              : t("market.freshOpportunities")}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="bg-white p-1 rounded-lg shadow-xs flex">
-            {FILTER_TABS.map(({ label, value }) => {
+            {FILTER_TABS.map(({ labelKey, value }) => {
               const isActive = activeFilter === value;
               return (
                 <button
@@ -139,7 +141,7 @@ export function MarketSection({
                       : "text-nordic-muted hover:text-nordic-dark"
                   }`}
                 >
-                  {label}
+                  {t(labelKey)}
                 </button>
               );
             })}
@@ -151,17 +153,17 @@ export function MarketSection({
       {isFiltering && (
         <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white/70 rounded-xl border border-nordic-dark/5 backdrop-blur-xs">
           <span className="text-xs font-semibold text-nordic-muted uppercase tracking-wider mr-1">
-            Active Filters:
+            {t("market.activeFilters")}
           </span>
 
           {queryParam && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium">
-              Location: &ldquo;{queryParam}&rdquo;
+              {t("market.location", { value: queryParam })}
               <button
                 type="button"
                 onClick={() => removeFilterParam("q")}
                 className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                aria-label="Remove location filter"
+                aria-label={t("market.removeLocation")}
               >
                 <Icon name="close" className="text-xs" />
               </button>
@@ -170,12 +172,16 @@ export function MarketSection({
 
           {categoryParam && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium capitalize">
-              Type: {categoryParam}
+              {t("market.type", {
+                value: has(`categories.${categoryParam}`)
+                  ? t(`categories.${categoryParam}`)
+                  : categoryParam,
+              })}
               <button
                 type="button"
                 onClick={() => removeFilterParam("category")}
                 className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                aria-label="Remove category filter"
+                aria-label={t("market.removeCategory")}
               >
                 <Icon name="close" className="text-xs" />
               </button>
@@ -184,8 +190,10 @@ export function MarketSection({
 
           {(minPriceParam || maxPriceParam) && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium">
-              Price: ${Number(minPriceParam || 0).toLocaleString()} –{" "}
-              {maxPriceParam ? `$${Number(maxPriceParam).toLocaleString()}` : "Any"}
+              {t("market.price", {
+                min: `$${formatNumber(Number(minPriceParam || 0))}`,
+                max: maxPriceParam ? `$${formatNumber(Number(maxPriceParam))}` : t("common.any"),
+              })}
               <button
                 type="button"
                 onClick={() => {
@@ -193,7 +201,7 @@ export function MarketSection({
                   removeFilterParam("maxPrice");
                 }}
                 className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                aria-label="Remove price filter"
+                aria-label={t("market.removePrice")}
               >
                 <Icon name="close" className="text-xs" />
               </button>
@@ -202,12 +210,12 @@ export function MarketSection({
 
           {bedsParam && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium">
-              {bedsParam}+ Beds
+              {t("market.bedsFilter", { count: bedsParam })}
               <button
                 type="button"
                 onClick={() => removeFilterParam("beds")}
                 className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                aria-label="Remove beds filter"
+                aria-label={t("market.removeBeds")}
               >
                 <Icon name="close" className="text-xs" />
               </button>
@@ -216,12 +224,12 @@ export function MarketSection({
 
           {bathsParam && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium">
-              {bathsParam}+ Baths
+              {t("market.bathsFilter", { count: bathsParam })}
               <button
                 type="button"
                 onClick={() => removeFilterParam("baths")}
                 className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                aria-label="Remove baths filter"
+                aria-label={t("market.removeBaths")}
               >
                 <Icon name="close" className="text-xs" />
               </button>
@@ -234,12 +242,14 @@ export function MarketSection({
                 key={amenity}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-mosque/10 text-mosque rounded-full text-xs font-medium"
               >
-                {amenity}
+                {has(`amenities.${amenity}`) ? t(`amenities.${amenity}`) : amenity}
                 <button
                   type="button"
                   onClick={() => removeFilterParam("amenities", amenity)}
                   className="hover:text-nordic-dark cursor-pointer ml-0.5"
-                  aria-label={`Remove ${amenity} amenity`}
+                  aria-label={t("market.removeAmenity", {
+                    name: has(`amenities.${amenity}`) ? t(`amenities.${amenity}`) : amenity,
+                  })}
                 >
                   <Icon name="close" className="text-xs" />
                 </button>
@@ -251,7 +261,7 @@ export function MarketSection({
             onClick={clearAllFilters}
             className="text-xs font-medium text-nordic-muted hover:text-nordic-dark underline underline-offset-2 ml-auto cursor-pointer"
           >
-            Clear all
+            {t("market.clearAll")}
           </button>
         </div>
       )}
@@ -269,18 +279,17 @@ export function MarketSection({
             <Icon name="search_off" className="text-3xl" />
           </div>
           <h3 className="text-xl font-medium text-nordic-dark mb-2">
-            No properties found
+            {t("market.noResultsTitle")}
           </h3>
           <p className="text-nordic-muted text-sm max-w-md mx-auto mb-6">
-            We couldn&apos;t find any properties matching your current criteria.
-            Try adjusting your location, price range, or amenities.
+            {t("market.noResultsText")}
           </p>
           <button
             type="button"
             onClick={clearAllFilters}
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-mosque hover:bg-mosque/90 text-white font-medium rounded-lg shadow-sm transition-all cursor-pointer"
           >
-            <Icon name="refresh" className="text-base" /> Reset all filters
+            <Icon name="refresh" className="text-base" /> {t("market.resetFilters")}
           </button>
         </div>
       )}

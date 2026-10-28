@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { PropertyCategory, PropertyFilterParams } from "@/types/property";
 import { FilterModal } from "@/components/home/FilterModal";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface HeroSearchProps {
   initialFilters?: PropertyFilterParams;
@@ -16,6 +17,7 @@ export function HeroSearch({
   totalMarketCount = 38,
 }: HeroSearchProps) {
   const router = useRouter();
+  const { t } = useTranslations();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -38,11 +40,11 @@ export function HeroSearch({
   ).toLowerCase() as PropertyCategory;
 
   const categories: { label: string; value: PropertyCategory }[] = [
-    { label: "All", value: "all" },
-    { label: "House", value: "house" },
-    { label: "Apartment", value: "apartment" },
-    { label: "Villa", value: "villa" },
-    { label: "Penthouse", value: "penthouse" },
+    { label: t("categories.all"), value: "all" },
+    { label: t("categories.house"), value: "house" },
+    { label: t("categories.apartment"), value: "apartment" },
+    { label: t("categories.villa"), value: "villa" },
+    { label: t("categories.penthouse"), value: "penthouse" },
   ];
 
   const activeFiltersCount = [
@@ -167,9 +169,9 @@ export function HeroSearch({
       <div className="max-w-3xl mx-auto text-center space-y-8">
         {/* Main Title */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-nordic-dark leading-tight">
-          Find your{" "}
+          {t("hero.titleStart")}{" "}
           <span className="relative inline-block">
-            <span className="relative z-10 font-medium">sanctuary</span>
+            <span className="relative z-10 font-medium">{t("hero.titleHighlight")}</span>
             <span className="absolute bottom-2 left-0 w-full h-3 bg-mosque/20 -rotate-1 z-0" />
           </span>
           .
@@ -187,14 +189,14 @@ export function HeroSearch({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by city, neighborhood, or address..."
+            placeholder={t("hero.searchPlaceholder")}
             className="block w-full pl-12 pr-28 py-4 rounded-xl border-none bg-white text-nordic-dark shadow-soft placeholder-nordic-muted/60 focus:ring-2 focus:ring-mosque focus:bg-white transition-all text-lg outline-none"
           />
           <button
             type="submit"
             className="absolute inset-y-2 right-2 px-6 bg-mosque hover:bg-mosque/90 text-white font-medium rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-mosque/20 cursor-pointer"
           >
-            Search
+            {t("hero.search")}
           </button>
         </form>
 
@@ -231,7 +233,7 @@ export function HeroSearch({
             }`}
           >
             <Icon name="tune" className="text-base" />
-            <span>Filters</span>
+            <span>{t("hero.filters")}</span>
             {activeFiltersCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-white text-mosque text-xs font-bold flex items-center justify-center ml-0.5 shadow-xs">
                 {activeFiltersCount}

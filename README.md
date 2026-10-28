@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Internacionalización (i18n)
+
+Idiomas actuales: español (es), inglés (en) y francés (fr). El idioma se guarda en la cookie `NEXT_LOCALE` y se cambia con el selector del Navbar. En la primera visita se detecta con `Accept-Language` (por defecto, inglés).
+
+### Cómo añadir un idioma
+
+1. Copia `messages/en.json` a `messages/<codigo>.json` y traduce los valores (no cambies las claves).
+2. Añade el código en `i18n/config.ts` (`locales`, `localeLabels` e `intlTags`).
+3. Añade su loader en `i18n/dictionaries.ts`.
+4. Añade el SVG de su bandera en `components/ui/Flag.tsx`.
+5. (Opcional) Agrega las traducciones de propiedades en Supabase en la tabla `property_translations`.
+6. Ejecuta `npm run i18n:check` para verificar que no falta ninguna clave.
+

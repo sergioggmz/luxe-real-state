@@ -10,6 +10,7 @@ import { PropertyMortgageTeaser } from "@/components/property/PropertyMortgageTe
 import { PropertyStickyMobileBar } from "@/components/property/PropertyStickyMobileBar";
 import { PropertyMap } from "@/components/property/PropertyMap";
 import { getPropertyBySlug, getAllPropertySlugs } from "@/lib/properties";
+import { getTranslator } from "@/i18n/server";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,19 +21,29 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const property = await getPropertyBySlug(slug);
+  const { t, locale } = await getTranslator();
+  const property = await getPropertyBySlug(slug, locale);
 
   if (!property) {
     return {
-      title: "Property Not Found | LuxeEstate",
-      description: "The requested luxury property could not be found.",
+      title: t("meta.notFoundTitle"),
+      description: t("meta.notFoundDescription"),
     };
   }
 
-  const title = `${property.title} in ${property.location.city} | LuxeEstate`;
+  const title = t("meta.propertyTitle", {
+    title: property.title,
+    city: property.location.city,
+  });
   const description =
     property.description?.slice(0, 160) ||
-    `${property.title} - ${property.priceFormatted} in ${property.location.fullLocation}. ${property.specs.beds} Beds, ${property.specs.baths} Baths.`;
+    t("meta.propertyFallbackDescription", {
+      title: property.title,
+      price: property.priceFormatted,
+      location: property.location.fullLocation,
+      beds: property.specs.beds,
+      baths: property.specs.baths,
+    });
   const heroImage =
     property.images && property.images.length > 0
       ? property.images[0].imageUrl
@@ -71,7 +82,8 @@ export async function generateStaticParams() {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const property = await getPropertyBySlug(slug);
+  const { t, locale } = await getTranslator();
+  const property = await getPropertyBySlug(slug, locale);
 
   if (!property) {
     notFound();
@@ -81,6 +93,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
+    inLanguage: locale,
     name: property.title,
     description: property.description,
     url: `https://luxeestate.com/properties/${property.slug}`,
@@ -179,7 +192,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <footer className="bg-white border-t border-slate-200 mt-12 py-12 pb-24 lg:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-sm text-nordic/50">
-            © 2026 LuxeEstate Inc. All rights reserved.
+            {t("footer.rights")}
           </div>
           <div className="flex gap-6">
             <a

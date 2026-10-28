@@ -6,6 +6,7 @@ import { FeaturedSection } from "@/components/home/FeaturedSection";
 import { MarketSection } from "@/components/home/MarketSection";
 import { getFeaturedProperties, getMarketProperties } from "@/lib/properties";
 import { PropertyFilterParams } from "@/types/property";
+import { getLocale } from "@/i18n/server";
 
 const PAGE_SIZE = 6;
 
@@ -81,10 +82,12 @@ export default async function HomePage({
       listingType !== "all"
   );
 
+  const locale = await getLocale();
+
   const [featured, { properties: marketProps, totalCount }] = await Promise.all([
     // Solo cargamos featured si no hay filtros activos
-    !isFiltering ? getFeaturedProperties() : Promise.resolve([]),
-    getMarketProperties(filterParams),
+    !isFiltering ? getFeaturedProperties(2, locale) : Promise.resolve([]),
+    getMarketProperties(filterParams, locale),
   ]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);

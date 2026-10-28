@@ -1,10 +1,28 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
+import { getLocale, getTranslator } from "@/i18n/server";
+import { getDictionary } from "@/i18n/dictionaries";
+import { I18nProvider } from "@/i18n/I18nProvider";
 
-export const metadata: Metadata = {
-  title: "LuxeEstate - Premium Real Estate",
-  description: "Find your sanctuary. Curated properties for the discerning eye.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslator();
+  return {
+    title: t("meta.title"),
+    description: t("meta.description"),
+  };
+}
+
+// Lee la cookie de idioma (acceso dinámico, por eso va dentro de Suspense)
+async function LocaleShell({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
+  return (
+    <I18nProvider locale={locale} dict={dict}>
+      {children}
+    </I18nProvider>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -30,7 +48,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background-light text-nordic-dark font-display antialiased selection:bg-mosque selection:text-white min-h-screen flex flex-col">
-        {children}
+        <Suspense fallback={null}>
+          <LocaleShell>{children}</LocaleShell>
+        </Suspense>
       </body>
     </html>
   );

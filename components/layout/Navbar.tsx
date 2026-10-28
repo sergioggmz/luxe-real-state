@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Navbar() {
+  const { t } = useTranslations();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Buy");
+  const [activeTab, setActiveTab] = useState("buy");
 
-  const navLinks = ["Buy", "Rent", "Sell", "Saved Homes"];
+  const navLinks = [
+    { id: "buy", label: t("navbar.buy") },
+    { id: "rent", label: t("navbar.rent") },
+    { id: "sell", label: t("navbar.sell") },
+    { id: "savedHomes", label: t("navbar.savedHomes") },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-[#EEF6F6]/95 backdrop-blur-md border-b border-[#19322F]/10">
@@ -36,19 +44,19 @@ export function Navbar() {
           {/* Center: Perfectly Centered Navigation Links */}
           <div className="hidden md:flex items-center justify-center space-x-8 lg:space-x-10">
             {navLinks.map((link) => {
-              const isActive = activeTab === link;
+              const isActive = activeTab === link.id;
               return (
                 <button
-                  key={link}
+                  key={link.id}
                   type="button"
-                  onClick={() => setActiveTab(link)}
+                  onClick={() => setActiveTab(link.id)}
                   className={`text-sm font-medium transition-all px-1 py-1 cursor-pointer ${
                     isActive
                       ? "text-mosque border-b-2 border-mosque font-medium"
                       : "text-nordic-muted hover:text-nordic-dark hover:border-b-2 hover:border-nordic-dark/20"
                   }`}
                 >
-                  {link}
+                  {link.label}
                 </button>
               );
             })}
@@ -59,7 +67,7 @@ export function Navbar() {
             {/* Search Button */}
             <button
               type="button"
-              aria-label="Search"
+              aria-label={t("navbar.search")}
               className="text-nordic-dark hover:text-mosque transition-colors cursor-pointer p-1"
             >
               <svg
@@ -80,7 +88,7 @@ export function Navbar() {
             {/* Notification Bell with Red Indicator Dot */}
             <button
               type="button"
-              aria-label="Notifications"
+              aria-label={t("navbar.notifications")}
               className="text-nordic-dark hover:text-mosque transition-colors cursor-pointer relative p-1"
             >
               <svg
@@ -99,13 +107,16 @@ export function Navbar() {
               <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#FF3B30] rounded-full" />
             </button>
 
+            {/* Language Selector */}
+            <LanguageSwitcher />
+
             {/* Subtle Vertical Divider */}
             <div className="w-[1px] h-6 bg-nordic-dark/15 mx-0.5" />
 
             {/* Profile Avatar (Warm Peach Circle with Minimal Portrait Line-art) */}
             <button
               type="button"
-              aria-label="User Profile"
+              aria-label={t("navbar.userProfile")}
               className="w-9 h-9 rounded-full bg-[#E8AA8B] flex items-center justify-center overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all cursor-pointer shadow-xs"
             >
               <svg
@@ -134,7 +145,7 @@ export function Navbar() {
             {/* Mobile Menu Hamburger Button */}
             <button
               type="button"
-              aria-label="Toggle mobile menu"
+              aria-label={t("navbar.toggleMenu")}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden text-nordic-dark hover:text-mosque transition-colors ml-1 p-1 cursor-pointer"
             >
@@ -164,13 +175,13 @@ export function Navbar() {
       >
         <div className="px-4 py-2 space-y-1">
           {navLinks.map((link) => {
-            const isActive = activeTab === link;
+            const isActive = activeTab === link.id;
             return (
               <button
-                key={link}
+                key={link.id}
                 type="button"
                 onClick={() => {
-                  setActiveTab(link);
+                  setActiveTab(link.id);
                   setMobileMenuOpen(false);
                 }}
                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors cursor-pointer ${
@@ -179,7 +190,7 @@ export function Navbar() {
                     : "text-nordic-dark hover:bg-black/5"
                 }`}
               >
-                {link}
+                {link.label}
               </button>
             );
           })}

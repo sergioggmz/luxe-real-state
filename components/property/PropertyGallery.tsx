@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { PropertyImage } from "@/types/property";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getBadgeLabel } from "@/i18n/labels";
 
 interface PropertyGalleryProps {
   images: PropertyImage[];
@@ -17,6 +19,7 @@ export function PropertyGallery({
   badge,
   isFeatured,
 }: PropertyGalleryProps) {
+  const { t, has } = useTranslations();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -79,11 +82,11 @@ export function PropertyGallery({
         <div className="absolute top-4 left-4 flex gap-2 z-10">
           {isFeatured && (
             <span className="bg-mosque text-white text-xs font-medium px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-              Premium
+              {t("property.premium")}
             </span>
           )}
           <span className="bg-white/90 backdrop-blur text-nordic text-xs font-medium px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-            {badge || "New"}
+            {getBadgeLabel(badge, t, has) || t("property.new")}
           </span>
         </div>
 
@@ -97,7 +100,7 @@ export function PropertyGallery({
           className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-nordic px-4 py-2 rounded-lg text-sm font-medium shadow-lg backdrop-blur transition-all flex items-center gap-2 cursor-pointer z-10"
         >
           <span className="material-icons text-sm">grid_view</span>
-          <span>View All Photos ({displayImages.length})</span>
+          <span>{t("property.viewAllPhotos", { count: displayImages.length })}</span>
         </button>
       </div>
 
@@ -120,7 +123,7 @@ export function PropertyGallery({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img.imageUrl}
-                  alt={img.imageAlt || `${title} thumbnail ${idx + 1}`}
+                  alt={img.imageAlt || t("property.thumbnail", { title, index: idx + 1 })}
                   className="w-full h-full object-cover"
                 />
               </button>
@@ -141,12 +144,12 @@ export function PropertyGallery({
             <div>
               <h3 className="text-lg font-medium truncate max-w-md">{title}</h3>
               <p className="text-sm text-white/60">
-                Photo {selectedIndex + 1} of {displayImages.length}
+                {t("property.photoCounter", { current: selectedIndex + 1, total: displayImages.length })}
               </p>
             </div>
             <button
               type="button"
-              aria-label="Close lightbox"
+              aria-label={t("property.closeLightbox")}
               onClick={() => setIsLightboxOpen(false)}
               className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
             >
@@ -160,7 +163,7 @@ export function PropertyGallery({
             {displayImages.length > 1 && (
               <button
                 type="button"
-                aria-label="Previous photo"
+                aria-label={t("property.previousPhoto")}
                 onClick={handlePrev}
                 className="absolute left-2 sm:left-6 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white backdrop-blur-sm transition-all cursor-pointer"
               >
@@ -182,7 +185,7 @@ export function PropertyGallery({
             {displayImages.length > 1 && (
               <button
                 type="button"
-                aria-label="Next photo"
+                aria-label={t("property.nextPhoto")}
                 onClick={handleNext}
                 className="absolute right-2 sm:right-6 z-10 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white backdrop-blur-sm transition-all cursor-pointer"
               >
