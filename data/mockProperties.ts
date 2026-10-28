@@ -4,6 +4,7 @@ export const FEATURED_PROPERTIES: Property[] = [
   {
     id: "feat-1",
     title: "The Glass Pavilion",
+    slug: "the-glass-pavilion",
     price: 5250000,
     priceFormatted: "$5,250,000",
     listingType: "sale",
@@ -28,6 +29,7 @@ export const FEATURED_PROPERTIES: Property[] = [
   {
     id: "feat-2",
     title: "Azure Heights Penthouse",
+    slug: "azure-heights-penthouse",
     price: 3800000,
     priceFormatted: "$3,800,000",
     listingType: "sale",
@@ -55,6 +57,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-1",
     title: "Modern Family Home",
+    slug: "modern-family-home",
     price: 850000,
     priceFormatted: "$850,000",
     listingType: "sale",
@@ -78,6 +81,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-2",
     title: "Urban Loft",
+    slug: "urban-loft",
     price: 3200,
     priceFormatted: "$3,200",
     rentalPeriod: "mo",
@@ -102,6 +106,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-3",
     title: "Highland Retreat",
+    slug: "highland-retreat",
     price: 620000,
     priceFormatted: "$620,000",
     listingType: "sale",
@@ -125,6 +130,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-4",
     title: "Sea View Penthouse",
+    slug: "sea-view-penthouse",
     price: 4500,
     priceFormatted: "$4,500",
     rentalPeriod: "mo",
@@ -149,6 +155,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-5",
     title: "Central Studio",
+    slug: "central-studio",
     price: 550000,
     priceFormatted: "$550,000",
     listingType: "sale",
@@ -172,6 +179,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-6",
     title: "Garden Villa",
+    slug: "garden-villa",
     price: 2800,
     priceFormatted: "$2,800",
     rentalPeriod: "mo",
@@ -196,6 +204,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-7",
     title: "The Glass Horizon",
+    slug: "the-glass-horizon",
     price: 6450000,
     priceFormatted: "$6,450,000",
     listingType: "sale",
@@ -219,6 +228,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-8",
     title: "Nordic Loft & Solarium",
+    slug: "nordic-loft-solarium",
     price: 3600,
     priceFormatted: "$3,600",
     rentalPeriod: "mo",
@@ -243,6 +253,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-9",
     title: "Alpine Sanctuary Chalet",
+    slug: "alpine-sanctuary-chalet",
     price: 4900000,
     priceFormatted: "$4,900,000",
     listingType: "sale",
@@ -266,6 +277,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-10",
     title: "Skyline Grand Duplex",
+    slug: "skyline-grand-duplex",
     price: 7200000,
     priceFormatted: "$7,200,000",
     listingType: "sale",
@@ -289,6 +301,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-11",
     title: "Casa Bellagio Residence",
+    slug: "casa-bellagio-residence",
     price: 8500,
     priceFormatted: "$8,500",
     rentalPeriod: "mo",
@@ -313,6 +326,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-12",
     title: "Monochrome Minimalist Flat",
+    slug: "monochrome-minimalist-flat",
     price: 1450000,
     priceFormatted: "$1,450,000",
     listingType: "sale",
@@ -336,6 +350,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-13",
     title: "The Bamboo Pavilion",
+    slug: "the-bamboo-pavilion",
     price: 4100,
     priceFormatted: "$4,100",
     rentalPeriod: "mo",
@@ -360,6 +375,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-14",
     title: "Solstice Waterfront Villa",
+    slug: "solstice-waterfront-villa",
     price: 3950000,
     priceFormatted: "$3,950,000",
     listingType: "sale",
@@ -383,6 +399,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-15",
     title: "The Highline Terrace Penthouse",
+    slug: "the-highline-terrace-penthouse",
     price: 6800,
     priceFormatted: "$6,800",
     rentalPeriod: "mo",
@@ -407,6 +424,7 @@ export const MARKET_PROPERTIES: Property[] = [
   {
     id: "market-16",
     title: "Hilltop Modernist Estate",
+    slug: "hilltop-modernist-estate",
     price: 2750000,
     priceFormatted: "$2,750,000",
     listingType: "sale",
@@ -442,4 +460,3 @@ export async function getMarketProperties(filter?: {
   }
   return MARKET_PROPERTIES.filter((p) => p.listingType === filter.listingType);
 }
-

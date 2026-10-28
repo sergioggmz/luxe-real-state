@@ -1,12 +1,38 @@
 import { supabase } from "@/lib/supabase";
-import { Property } from "@/types/property";
+import { Property, PropertyImage } from "@/types/property";
 
-// Convierte una fila plana de la BD al tipo anidado Property del front
+// Convierte una fila plana o con joins de la BD al tipo anidado Property del front
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: any): Property {
+  // Procesar imágenes relacionales si existen, ordenadas por display_order
+  let images: PropertyImage[] = [];
+  if (Array.isArray(row.property_images) && row.property_images.length > 0) {
+    images = [...row.property_images]
+      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((img: any) => ({
+        id: img.id as string,
+        propertyId: img.property_id as string,
+        imageUrl: img.image_url as string,
+        imageAlt: img.image_alt as string | undefined,
+        displayOrder: Number(img.display_order ?? 0),
+      }));
+  } else if (row.image_url) {
+    images = [
+      {
+        id: `${row.id}-main`,
+        propertyId: row.id as string,
+        imageUrl: row.image_url as string,
+        imageAlt: row.image_alt as string | undefined,
+        displayOrder: 0,
+      },
+    ];
+  }
+
   return {
     id: row.id as string,
     title: row.title as string,
+    slug: (row.slug as string) || (row.id as string),
     price: Number(row.price),
     priceFormatted: row.price_formatted as string,
     rentalPeriod: (row.rental_period as "mo" | "yr") ?? undefined,
@@ -14,6 +40,22 @@ function mapRow(row: any): Property {
     category: row.category as Property["category"],
     badge: row.badge as string | undefined,
     isFeatured: row.is_featured as boolean | undefined,
+    description: row.description as string | undefined,
+    amenities: Array.isArray(row.amenities) ? row.amenities : [],
+    garage: row.garage != null ? Number(row.garage) : 1,
+    latitude: row.latitude != null ? Number(row.latitude) : undefined,
+    longitude: row.longitude != null ? Number(row.longitude) : undefined,
+    agent: row.agent_name
+      ? {
+          name: row.agent_name as string,
+          title: (row.agent_title as string) || "Top Rated Agent",
+          avatar:
+            (row.agent_avatar as string) ||
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuD4TxUmdQRb2VMjuaNxLEwLorv_dgHzoET2_wL5toSvew6nhtziaR3DX-U69DBN7J74yO6oKokpw8tqEFutJf13MeXghCy7FwZuAxnoJel6FYcKeCRUVinpZtrNnkZvXd-MY5_2MAtRD7JP5BieHixfCaeAPW04jm-y-nvF3HIrwcZ_HRDk_MrNP5WiPV3u9zNrEgM-SQoWGh4xLVSV444aZAbVl03mjjsW5WBpIeodCyqJxprTDp6Q157D06VxcdUSCf-l9UKQT-w",
+          phone: (row.agent_phone as string) || "+1 (555) 234-5678",
+          email: (row.agent_email as string) || "sarah.jenkins@luxeestate.com",
+        }
+      : undefined,
     location: {
       address: row.address as string,
       neighborhood: row.neighborhood as string | undefined,
@@ -28,6 +70,7 @@ function mapRow(row: any): Property {
     },
     imageUrl: row.image_url as string,
     imageAlt: row.image_alt as string,
+    images,
   };
 }
 
@@ -35,7 +78,7 @@ function mapRow(row: any): Property {
 export async function getFeaturedProperties(): Promise<Property[]> {
   const { data, error } = await supabase
     .from("properties")
-    .select("*")
+    .select("*, property_images(*)")
     .eq("is_featured", true)
     .order("created_at", { ascending: false });
 
@@ -59,7 +102,7 @@ export async function getMarketProperties(opts: {
 
   let query = supabase
     .from("properties")
-    .select("*", { count: "exact" })
+    .select("*, property_images(*)", { count: "exact" })
     .eq("is_featured", false)
     .order("created_at", { ascending: false })
     .range(from, to);
@@ -81,3 +124,34 @@ export async function getMarketProperties(opts: {
   };
 }
 
+// --- Propiedad individual por SLUG ---
+export async function getPropertyBySlug(slug: string): Promise<Property | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*, property_images(*)")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching property by slug:", error.message);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return mapRow(data);
+}
+
+// --- Obtener todos los slugs para Static Generation / Sitemap ---
+export async function getAllPropertySlugs(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("slug");
+
+  if (error) {
+    console.error("Error fetching all property slugs:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row) => row.slug as string).filter(Boolean);
+}

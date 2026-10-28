@@ -16,9 +16,26 @@ export interface PropertySpecs {
   areaSqm: number;
 }
 
+export interface PropertyAgent {
+  name: string;
+  title: string;
+  avatar: string;
+  phone: string;
+  email: string;
+}
+
+export interface PropertyImage {
+  id: string;
+  propertyId: string;
+  imageUrl: string;
+  imageAlt?: string;
+  displayOrder: number;
+}
+
 export interface Property {
   id: string;
   title: string;
+  slug: string;
   price: number;
   priceFormatted: string;
   rentalPeriod?: "mo" | "yr";
@@ -31,5 +48,11 @@ export interface Property {
   badge?: string; // e.g. "Exclusive", "New Arrival", "FOR SALE", "FOR RENT"
   isFeatured?: boolean;
   isFavorite?: boolean;
+  description?: string;
+  amenities?: string[];
+  garage?: number;
+  latitude?: number;
+  longitude?: number;
+  agent?: PropertyAgent;
+  images?: PropertyImage[];
 }
-
