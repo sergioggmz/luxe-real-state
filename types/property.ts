@@ -26,10 +26,10 @@ export interface PropertyAgent {
 
 export interface PropertyImage {
   id: string;
-  propertyId: string;
+  propertyId?: string;
   imageUrl: string;
   imageAlt?: string;
-  displayOrder: number;
+  displayOrder?: number;
 }
 
 export interface Property {
@@ -43,7 +43,11 @@ export interface Property {
   category: PropertyCategory;
   location: PropertyLocation;
   specs: PropertySpecs;
+  /** Arreglo unificado de imágenes (la primera [0] es la portada y las subsiguientes las adicionales) */
+  images: PropertyImage[];
+  /** Helper derivado de images[0].imageUrl para mantener compatibilidad */
   imageUrl: string;
+  /** Helper derivado de images[0].imageAlt para mantener compatibilidad */
   imageAlt: string;
   badge?: string; // e.g. "Exclusive", "New Arrival", "FOR SALE", "FOR RENT"
   isFeatured?: boolean;
@@ -54,5 +58,4 @@ export interface Property {
   latitude?: number;
   longitude?: number;
   agent?: PropertyAgent;
-  images?: PropertyImage[];
 }

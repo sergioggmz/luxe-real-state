@@ -4,23 +4,32 @@ import { Property, PropertyImage } from "@/types/property";
 // Convierte una fila plana o con joins de la BD al tipo anidado Property del front
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapRow(row: any): Property {
-  // Procesar imágenes relacionales si existen, ordenadas por display_order
+  // Procesar imágenes unificadas: desde relación 'property_images', arreglo 'images' o fallback
   let images: PropertyImage[] = [];
+
   if (Array.isArray(row.property_images) && row.property_images.length > 0) {
     images = [...row.property_images]
       .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((img: any) => ({
-        id: img.id as string,
-        propertyId: img.property_id as string,
+      .map((img: any, idx: number) => ({
+        id: (img.id as string) || `${row.id}-${idx}`,
+        propertyId: (img.property_id as string) || (row.id as string),
         imageUrl: img.image_url as string,
-        imageAlt: img.image_alt as string | undefined,
-        displayOrder: Number(img.display_order ?? 0),
+        imageAlt: (img.image_alt as string | undefined) || (idx === 0 ? row.image_alt || row.title : `${row.title} - Photo ${idx + 1}`),
+        displayOrder: Number(img.display_order ?? idx),
       }));
+  } else if (Array.isArray(row.images) && row.images.length > 0) {
+    images = row.images.map((url: string, idx: number) => ({
+      id: `${row.id}-${idx}`,
+      propertyId: row.id as string,
+      imageUrl: url,
+      imageAlt: idx === 0 ? row.image_alt || row.title : `${row.title} - Photo ${idx + 1}`,
+      displayOrder: idx,
+    }));
   } else if (row.image_url) {
     images = [
       {
-        id: `${row.id}-main`,
+        id: `${row.id}-0`,
         propertyId: row.id as string,
         imageUrl: row.image_url as string,
         imageAlt: row.image_alt as string | undefined,
@@ -28,6 +37,19 @@ function mapRow(row: any): Property {
       },
     ];
   }
+
+  // La imagen principal se obtiene directamente de la primera posición del arreglo de imágenes
+  const primaryImageUrl =
+    images[0]?.imageUrl ||
+    (Array.isArray(row.images) && row.images[0]) ||
+    row.image_url ||
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80";
+
+  const primaryImageAlt =
+    images[0]?.imageAlt ||
+    row.image_alt ||
+    row.title ||
+    "Luxury Property";
 
   return {
     id: row.id as string,
@@ -68,9 +90,9 @@ function mapRow(row: any): Property {
       baths: Number(row.baths),
       areaSqm: Number(row.area_sqm),
     },
-    imageUrl: row.image_url as string,
-    imageAlt: row.image_alt as string,
     images,
+    imageUrl: primaryImageUrl,
+    imageAlt: primaryImageAlt,
   };
 }
 

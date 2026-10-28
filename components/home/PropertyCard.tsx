@@ -12,6 +12,8 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, className = "" }: PropertyCardProps) {
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false);
+  const mainImage = property.images?.[0]?.imageUrl || property.imageUrl;
+  const mainAlt = property.images?.[0]?.imageAlt || property.imageAlt || property.title;
 
   const isRent = property.listingType === "rent";
   const badgeText = property.badge || (isRent ? "FOR RENT" : "FOR SALE");
@@ -24,8 +26,8 @@ export function PropertyCard({ property, className = "" }: PropertyCardProps) {
         <div className="relative aspect-[4/3] overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={property.imageUrl}
-            alt={property.imageAlt}
+            src={mainImage}
+            alt={mainAlt}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
 

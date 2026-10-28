@@ -42,14 +42,22 @@ export function PropertyMap({
         attributionControl: false,
       });
 
-      // Capa de mosaicos estéticos de CartoDB Voyager
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          subdomains: "abcd",
-        }
-      ).addTo(mapInstance);
+      // Capa de mosaicos abierta de OpenStreetMap (libre, sin necesidad de API key)
+      // Si se define NEXT_PUBLIC_CARTO_API_KEY se usa CartoDB Voyager
+      const cartoKey =
+        typeof process !== "undefined"
+          ? process.env.NEXT_PUBLIC_CARTO_API_KEY
+          : undefined;
+      const tileUrl = cartoKey
+        ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`
+        : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+      L.tileLayer(tileUrl, {
+        maxZoom: 19,
+        subdomains: cartoKey ? "abcd" : "abc",
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(mapInstance);
 
       // Pin personalizado con el color de marca #006655 y el icono 'home'
       const customPin = L.divIcon({

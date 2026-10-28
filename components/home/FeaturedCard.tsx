@@ -11,6 +11,8 @@ interface FeaturedCardProps {
 
 export function FeaturedCard({ property }: FeaturedCardProps) {
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false);
+  const mainImage = property.images?.[0]?.imageUrl || property.imageUrl;
+  const mainAlt = property.images?.[0]?.imageAlt || property.imageAlt || property.title;
 
   return (
     <Link href={`/properties/${property.slug}`} className="block group">
@@ -19,8 +21,8 @@ export function FeaturedCard({ property }: FeaturedCardProps) {
         <div className="aspect-[4/3] w-full overflow-hidden relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={property.imageUrl}
-            alt={property.imageAlt}
+            src={mainImage}
+            alt={mainAlt}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
 
