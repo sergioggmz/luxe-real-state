@@ -1,38 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { PropertyCard } from "@/components/home/PropertyCard";
+import { PaginationControls } from "@/components/home/PaginationControls";
 import { Property } from "@/types/property";
 
 interface MarketSectionProps {
   properties: Property[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  activeFilter: "all" | "sale" | "rent";
 }
 
-export function MarketSection({ properties }: MarketSectionProps) {
-  const INITIAL_COUNT = 8;
-  const [activeFilter, setActiveFilter] = useState<"All" | "Buy" | "Rent">("All");
-  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_COUNT);
+const FILTER_TABS: { label: string; value: "all" | "sale" | "rent" }[] = [
+  { label: "All", value: "all" },
+  { label: "Buy", value: "sale" },
+  { label: "Rent", value: "rent" },
+];
 
-  const filterTabs: ("All" | "Buy" | "Rent")[] = ["All", "Buy", "Rent"];
+export function MarketSection({
+  properties,
+  currentPage,
+  totalPages,
+  totalCount,
+  activeFilter,
+}: MarketSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const handleFilterChange = (tab: "All" | "Buy" | "Rent") => {
-    setActiveFilter(tab);
-    setVisibleCount(INITIAL_COUNT);
+  const navigate = (page: number, filter: "all" | "sale" | "rent") => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("filter", filter);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
-  const filteredProperties = properties.filter((property) => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "Buy") return property.listingType === "sale";
-    if (activeFilter === "Rent") return property.listingType === "rent";
-    return true;
-  });
+  const handleFilterChange = (filter: "all" | "sale" | "rent") => {
+    navigate(1, filter);
+  };
 
-  const displayedProperties = filteredProperties.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProperties.length;
+  const handlePageChange = (page: number) => {
+    navigate(page, activeFilter);
+    // Scroll suave al inicio de la sección
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <section>
-      {/* Section Header with Tabs */}
+      {/* Header + filtros */}
       <div className="flex items-end justify-between mb-8">
         <div>
           <h2 className="text-2xl font-light text-nordic-dark">
@@ -44,52 +60,46 @@ export function MarketSection({ properties }: MarketSectionProps) {
         </div>
 
         <div className="hidden md:flex bg-white p-1 rounded-lg shadow-xs">
-          {filterTabs.map((tab) => {
-            const isActive = activeFilter === tab;
+          {FILTER_TABS.map(({ label, value }) => {
+            const isActive = activeFilter === value;
             return (
               <button
-                key={tab}
+                key={value}
                 type="button"
-                onClick={() => handleFilterChange(tab)}
+                onClick={() => handleFilterChange(value)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                   isActive
                     ? "bg-nordic-dark text-white shadow-sm"
                     : "text-nordic-muted hover:text-nordic-dark"
                 }`}
               >
-                {tab}
+                {label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Grid of Property Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {displayedProperties.map((property) => (
-          <PropertyCard
-            key={property.id}
-            property={property}
-          />
-        ))}
-      </div>
-
-      {/* Load More Button */}
-      {hasMore ? (
-        <div className="mt-12 text-center">
-          <button
-            type="button"
-            onClick={() => setVisibleCount((prev) => prev + 4)}
-            className="px-8 py-3 bg-white border border-nordic-dark/10 hover:border-mosque hover:text-mosque text-nordic-dark font-medium rounded-lg transition-all hover:shadow-md cursor-pointer"
-          >
-            Load more properties
-          </button>
+      {/* Grid de propiedades */}
+      {properties.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {properties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
         </div>
       ) : (
-        <div className="mt-12 text-center text-sm text-nordic-muted font-light">
-          Showing all {filteredProperties.length} properties
+        <div className="py-16 text-center text-nordic-muted">
+          No properties found for this filter.
         </div>
       )}
+
+      {/* Paginación */}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={handlePageChange}
+      />
     </section>
   );
 }
