@@ -22,7 +22,9 @@
     "search": "Buscar",
     "notifications": "Notificaciones",
     "userProfile": "Perfil de usuario",
-    "toggleMenu": "Abrir o cerrar el menú móvil"
+    "toggleMenu": "Abrir o cerrar el menú móvil",
+    "signIn": "Login",
+    "signOut": "Cerrar sesión"
   },
   "hero": {
     "titleStart": "Encuentra tu",
@@ -230,5 +232,23 @@
   },
   "footer": {
     "rights": "© 2026 LuxeEstate Inc. Todos los derechos reservados."
+  },
+  "auth": {
+    "welcomeTitle": "Bienvenido a LuxeEstate",
+    "welcomeSubtitle": "Descubre propiedades exclusivas en todo el mundo.",
+    "continueGoogle": "Continuar con Google",
+    "continueGithub": "Continuar con GitHub",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "signUp": "Regístrate",
+    "privacyPolicy": "Política de privacidad",
+    "termsOfService": "Términos de servicio",
+    "helpCenter": "Centro de ayuda",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "connecting": "Conectando...",
+    "completingLogin": "Completando inicio de sesión...",
+    "loginError": "Error de autenticación. Por favor, inténtalo de nuevo.",
+    "loggedInAs": "Conectado como",
+    "backToHome": "Volver al inicio"
   }
 }

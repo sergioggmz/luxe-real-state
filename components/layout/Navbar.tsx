@@ -1,14 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Navbar() {
   const { t } = useTranslations();
+  const { user, avatarUrl, displayName, provider, signOut, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("buy");
+
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenuOpen(false);
+      }
+    }
+
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userMenuOpen]);
 
   const navLinks = [
     { id: "buy", label: t("navbar.buy") },
@@ -41,7 +64,7 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Center: Perfectly Centered Navigation Links */}
+          {/* Center: Navigation Links */}
           <div className="hidden md:flex items-center justify-center space-x-8 lg:space-x-10">
             {navLinks.map((link) => {
               const isActive = activeTab === link.id;
@@ -62,8 +85,8 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Right: Search, Notifications with red badge, Divider & Profile Avatar */}
-          <div className="flex-1 flex items-center justify-end space-x-5">
+          {/* Right: Search, Notifications, Divider, Profile/Login & Language Selector */}
+          <div className="flex-1 flex items-center justify-end space-x-4 sm:space-x-5">
             {/* Search Button */}
             <button
               type="button"
@@ -107,40 +130,108 @@ export function Navbar() {
               <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#FF3B30] rounded-full" />
             </button>
 
+            {/* Subtle Vertical Divider */}
+            <div className="w-[1px] h-6 bg-nordic-dark/15 ml-1 mr-2.5 sm:ml-1.5 sm:mr-3" />
+
+            {/* Profile Avatar (when logged in) OR Login button (when not logged in) */}
+            {loading ? (
+              <div className="w-16 h-8 rounded-full bg-nordic-dark/5 animate-pulse" />
+            ) : user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  aria-label={t("navbar.userProfile")}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-mosque/40 hover:ring-mosque transition-all cursor-pointer shadow-xs flex items-center justify-center bg-[#E8AA8B]"
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={displayName || "User avatar"}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <span className="text-white text-sm font-semibold">
+                      {displayName?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                  )}
+                </button>
+
+                {/* User Dropdown Menu */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white shadow-soft border border-nordic-dark/10 py-2 z-50 text-nordic-dark">
+                    <div className="px-4 py-3 border-b border-nordic-dark/10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-[#E8AA8B] ring-1 ring-nordic-dark/10 shrink-0 flex items-center justify-center">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={displayName || "User"}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <span className="text-white text-base font-semibold">
+                              {displayName?.charAt(0).toUpperCase() || "U"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold truncate text-nordic-dark">
+                            {displayName}
+                          </p>
+                          <p className="text-xs text-nordic-muted truncate">
+                            {user.email}
+                          </p>
+                          {provider && (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-mosque/10 text-mosque capitalize">
+                              {provider}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setUserMenuOpen(false);
+                          await signOut();
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.8"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          />
+                        </svg>
+                        <span>{t("navbar.signOut")}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-mosque hover:bg-primary-dark rounded-full transition-all duration-200 shadow-xs hover:shadow-soft cursor-pointer"
+              >
+                {t("navbar.signIn")}
+              </Link>
+            )}
+
             {/* Language Selector */}
             <LanguageSwitcher />
-
-            {/* Subtle Vertical Divider */}
-            <div className="w-[1px] h-6 bg-nordic-dark/15 mx-0.5" />
-
-            {/* Profile Avatar (Warm Peach Circle with Minimal Portrait Line-art) */}
-            <button
-              type="button"
-              aria-label={t("navbar.userProfile")}
-              className="w-9 h-9 rounded-full bg-[#E8AA8B] flex items-center justify-center overflow-hidden ring-2 ring-transparent hover:ring-mosque transition-all cursor-pointer shadow-xs"
-            >
-              <svg
-                viewBox="0 0 36 36"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full h-full"
-              >
-                <rect width="36" height="36" fill="#E8AA8B" />
-                <path
-                  d="M21 9C17 9 14 11 13.5 14C13.2 15.5 13.8 16.5 13.5 17.5C13.2 18.2 12.5 18.5 12.5 19.2C12.5 19.8 13.2 20 13.2 20.5C13.2 21 12.8 21.3 13.2 22C13.6 22.7 14.5 22.8 15 23.5C15.5 24.2 15.5 26 15.5 28M20 28C20 25 21 23 21 21M17 17C17.5 17 18 17.5 18 18.5C18 19.5 17.5 20 16.5 20"
-                  stroke="#B57150"
-                  strokeWidth="1.1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M13.5 14C15 13.5 18 13.5 20.5 14.5C22.5 15.3 23.5 17.5 23.5 20C23.5 23 21.5 25 20 25.5"
-                  stroke="#B57150"
-                  strokeWidth="1"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
 
             {/* Mobile Menu Hamburger Button */}
             <button
@@ -170,7 +261,7 @@ export function Navbar() {
       {/* Mobile Drawer */}
       <div
         className={`md:hidden bg-[#EEF6F6] overflow-hidden transition-all duration-300 ${
-          mobileMenuOpen ? "max-h-60 border-t border-[#19322F]/10" : "max-h-0"
+          mobileMenuOpen ? "max-h-96 border-t border-[#19322F]/10" : "max-h-0"
         }`}
       >
         <div className="px-4 py-2 space-y-1">
@@ -194,6 +285,53 @@ export function Navbar() {
               </button>
             );
           })}
+
+          <div className="pt-2 pb-1 border-t border-[#19322F]/10">
+            {user ? (
+              <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-[#E8AA8B] shrink-0">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName || "User"}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="flex items-center justify-center w-full h-full text-white text-xs font-semibold">
+                        {displayName?.charAt(0).toUpperCase() || "U"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-nordic-dark truncate">
+                      {displayName}
+                    </p>
+                    <p className="text-xs text-nordic-muted truncate">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setMobileMenuOpen(false);
+                    await signOut();
+                  }}
+                  className="text-xs text-red-600 font-medium px-2 py-1 rounded hover:bg-red-50 cursor-pointer"
+                >
+                  {t("navbar.signOut")}
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center px-4 py-2.5 rounded-full text-sm font-semibold text-white bg-mosque hover:bg-primary-dark transition-colors cursor-pointer"
+              >
+                {t("navbar.signIn")}
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </nav>

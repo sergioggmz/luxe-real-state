@@ -22,7 +22,9 @@
     "search": "Rechercher",
     "notifications": "Notifications",
     "userProfile": "Profil utilisateur",
-    "toggleMenu": "Ouvrir ou fermer le menu mobile"
+    "toggleMenu": "Ouvrir ou fermer le menu mobile",
+    "signIn": "Login",
+    "signOut": "Se déconnecter"
   },
   "hero": {
     "titleStart": "Trouvez votre",
@@ -230,5 +232,23 @@
   },
   "footer": {
     "rights": "© 2026 LuxeEstate Inc. Tous droits réservés."
+  },
+  "auth": {
+    "welcomeTitle": "Bienvenue sur LuxeEstate",
+    "welcomeSubtitle": "Découvrez des propriétés exclusives dans le monde entier.",
+    "continueGoogle": "Continuer avec Google",
+    "continueGithub": "Continuer avec GitHub",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "signUp": "S'inscrire",
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "helpCenter": "Centre d'aide",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "connecting": "Connexion en cours...",
+    "completingLogin": "Finalisation de la connexion...",
+    "loginError": "Échec de l'authentification. Veuillez réessayer.",
+    "loggedInAs": "Connecté en tant que",
+    "backToHome": "Retour à l'accueil"
   }
 }

@@ -22,7 +22,9 @@
     "search": "Search",
     "notifications": "Notifications",
     "userProfile": "User Profile",
-    "toggleMenu": "Toggle mobile menu"
+    "toggleMenu": "Toggle mobile menu",
+    "signIn": "Login",
+    "signOut": "Sign Out"
   },
   "hero": {
     "titleStart": "Find your",
@@ -230,5 +232,23 @@
   },
   "footer": {
     "rights": "© 2026 LuxeEstate Inc. All rights reserved."
+  },
+  "auth": {
+    "welcomeTitle": "Welcome to LuxeEstate",
+    "welcomeSubtitle": "Unlock exclusive properties worldwide.",
+    "continueGoogle": "Continue with Google",
+    "continueGithub": "Continue with GitHub",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "helpCenter": "Help Center",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "connecting": "Connecting...",
+    "completingLogin": "Completing login...",
+    "loginError": "Authentication failed. Please try again.",
+    "loggedInAs": "Logged in as",
+    "backToHome": "Back to Home"
   }
 }
