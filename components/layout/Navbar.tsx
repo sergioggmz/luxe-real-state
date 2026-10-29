@@ -185,8 +185,12 @@ export function Navbar() {
                             {user.email}
                           </p>
                           {provider && (
-                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-mosque/10 text-mosque capitalize">
-                              {provider}
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-mosque/10 text-mosque">
+                              {provider === "google"
+                                ? "Google"
+                                : provider === "github"
+                                ? "GitHub"
+                                : provider}
                             </span>
                           )}
                         </div>
@@ -309,6 +313,15 @@ export function Navbar() {
                       {displayName}
                     </p>
                     <p className="text-xs text-nordic-muted truncate">{user.email}</p>
+                    {provider && (
+                      <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded-full bg-mosque/10 text-mosque">
+                        {provider === "google"
+                          ? "Google"
+                          : provider === "github"
+                          ? "GitHub"
+                          : provider}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button

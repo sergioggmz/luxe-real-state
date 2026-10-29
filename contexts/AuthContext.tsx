@@ -52,14 +52,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [supabase]);
 
+  const provider = useMemo(() => {
+    if (!user) return null;
+
+    // 1. Identificar por el emisor (iss) del token de la sesión actual
+    // GitHub establece 'https://api.github.com' y Google 'https://accounts.google.com'
+    const iss = user.user_metadata?.iss as string | undefined;
+    if (iss) {
+      if (iss.includes("github")) return "github";
+      if (iss.includes("google")) return "google";
+    }
+
+    // 2. Identificar por el host del avatar activo en los metadatos de usuario
+    const avatar = (user.user_metadata?.avatar_url as string | undefined) || "";
+    if (avatar.includes("githubusercontent")) return "github";
+    if (avatar.includes("googleusercontent")) return "google";
+
+    // 3. Identificar por la identidad con timestamp más reciente (evaluando updated_at y last_sign_in_at)
+    if (user.identities && user.identities.length > 0) {
+      const getIdentityTime = (id: (typeof user.identities)[number]) => {
+        const u = id.updated_at ? new Date(id.updated_at).getTime() : 0;
+        const l = id.last_sign_in_at ? new Date(id.last_sign_in_at).getTime() : 0;
+        const c = id.created_at ? new Date(id.created_at).getTime() : 0;
+        return Math.max(u, l, c);
+      };
+
+      const sorted = [...user.identities].sort(
+        (a, b) => getIdentityTime(b) - getIdentityTime(a)
+      );
+      const latest = sorted[0]?.provider;
+      if (latest) return latest.toLowerCase();
+    }
+
+    // 4. Fallback al proveedor de registro original
+    if (user.app_metadata?.provider) {
+      return (user.app_metadata.provider as string).toLowerCase();
+    }
+
+    return null;
+  }, [user]);
+
   const avatarUrl = useMemo(() => {
     if (!user) return null;
+    // Si el proveedor activo es GitHub, priorizar avatar_url de GitHub
+    if (provider === "github" && user.user_metadata?.avatar_url) {
+      return user.user_metadata.avatar_url as string;
+    }
+    // Si el proveedor activo es Google, priorizar picture o avatar_url de Google
+    if (provider === "google") {
+      return (
+        (user.user_metadata?.picture as string) ||
+        (user.user_metadata?.avatar_url as string) ||
+        null
+      );
+    }
     return (
       (user.user_metadata?.avatar_url as string) ||
       (user.user_metadata?.picture as string) ||
       null
     );
-  }, [user]);
+  }, [user, provider]);
 
   const displayName = useMemo(() => {
     if (!user) return null;
@@ -70,11 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user.email ||
       "User"
     );
-  }, [user]);
-
-  const provider = useMemo(() => {
-    if (!user?.app_metadata?.provider) return null;
-    return user.app_metadata.provider as string;
   }, [user]);
 
   const signInWithGoogle = async () => {
@@ -127,4 +174,3 @@ export function useAuth() {
   }
   return context;
 }
-
