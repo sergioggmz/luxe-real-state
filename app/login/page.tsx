@@ -25,9 +25,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/");
+      const next = searchParams.get("next");
+      router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, searchParams]);
 
   const handleGoogleSignIn = async () => {
     try {

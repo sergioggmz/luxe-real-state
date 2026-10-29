@@ -21,42 +21,28 @@ function CallbackHandler() {
       return;
     }
 
-    const code = searchParams.get("code");
     const supabase = getSupabaseBrowserClient();
 
-    if (code) {
-      supabase.auth
-        .exchangeCodeForSession(code)
-        .then(({ error: exchangeError }) => {
-          if (exchangeError) {
-            router.replace(
-              `/login?error=${encodeURIComponent(exchangeError.message)}`
-            );
-          } else {
-            router.replace("/");
-          }
-        })
-        .catch((err) => {
-          router.replace(
-            `/login?error=${encodeURIComponent(
-              err instanceof Error ? err.message : "Exchange failed"
-            )}`
-          );
-        });
-    } else {
-      // Check if session was already established or in hash fragment
-      supabase.auth.getSession().then(({ data: { session } }) => {
+    // El cliente (PKCE) intercambia el `code` de la URL automáticamente al inicializarse;
+    // getSession() espera a que termine. Un segundo exchange manual fallaría (verifier ya consumido).
+    supabase.auth
+      .getSession()
+      .then(({ data: { session }, error: sessionError }) => {
         if (session) {
           router.replace("/");
         } else {
-          // Short delay before fallback redirect
-          const timer = setTimeout(() => {
-            router.replace("/");
-          }, 1000);
-          return () => clearTimeout(timer);
+          router.replace(
+            `/login?error=${encodeURIComponent(sessionError?.message || "Authentication failed")}`
+          );
         }
+      })
+      .catch((err: unknown) => {
+        router.replace(
+          `/login?error=${encodeURIComponent(
+            err instanceof Error ? err.message : "Exchange failed"
+          )}`
+        );
       });
-    }
   }, [router, searchParams]);
 
   return (

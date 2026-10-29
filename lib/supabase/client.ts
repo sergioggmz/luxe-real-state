@@ -1,15 +1,18 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-let browserClient: ReturnType<typeof createClient> | null = null;
+let browserClient: SupabaseClient | null = null;
 
-export function getSupabaseBrowserClient() {
+// Cliente de navegador con sesión en cookies (visible para proxy.ts y el servidor)
+export function getSupabaseBrowserClient(): SupabaseClient {
   if (typeof window === "undefined") {
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+      isSingleton: false,
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -18,15 +21,8 @@ export function getSupabaseBrowserClient() {
   }
 
   if (!browserClient) {
-    browserClient = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
+    browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey);
   }
 
   return browserClient;
 }
-

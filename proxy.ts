@@ -1,3 +1,4 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   isLocale,
@@ -6,31 +7,74 @@ import {
   matchLocale,
 } from "@/i18n/config";
 
-// Primera visita: detecta el idioma del navegador y lo guarda en una cookie
-export function proxy(request: NextRequest) {
-  const current = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (isLocale(current)) return NextResponse.next();
+const localeCookieOptions = {
+  path: "/",
+  maxAge: LOCALE_COOKIE_MAX_AGE,
+  sameSite: "lax" as const,
+};
 
-  const locale = matchLocale(request.headers.get("accept-language"));
+export async function proxy(request: NextRequest) {
+  // 1) Idioma: primera visita detecta el idioma del navegador y lo guarda en una cookie
+  let newLocale: string | null = null;
+  if (!isLocale(request.cookies.get(LOCALE_COOKIE)?.value)) {
+    newLocale = matchLocale(request.headers.get("accept-language"));
+    // Disponible ya en este render
+    request.cookies.set(LOCALE_COOKIE, newLocale);
+  }
 
-  // Reenviamos la cookie en la propia petición para que ya esté disponible en este render
-  const headers = new Headers(request.headers);
-  const existing = headers.get("cookie");
-  headers.set(
-    "cookie",
-    `${existing ? `${existing}; ` : ""}${LOCALE_COOKIE}=${locale}`
-  );
+  let response = NextResponse.next({ request });
+  if (newLocale) response.cookies.set(LOCALE_COOKIE, newLocale, localeCookieOptions);
 
-  const response = NextResponse.next({ request: { headers } });
-  response.cookies.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-    sameSite: "lax",
-  });
+  // 2) Control de acceso por rol: solo para /admin
+  const { pathname } = request.nextUrl;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            response = NextResponse.next({ request });
+            if (newLocale) response.cookies.set(LOCALE_COOKIE, newLocale, localeCookieOptions);
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
+    // getUser() valida el token con Supabase (getSession no es fiable en servidor)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = `?next=${encodeURIComponent(pathname + request.nextUrl.search)}`;
+      return NextResponse.redirect(url);
+    }
+
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (data?.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return response;
 }
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
-

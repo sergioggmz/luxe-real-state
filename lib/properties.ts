@@ -311,3 +311,35 @@ export async function getAllPropertySlugs(): Promise<string[]> {
 
   return (data ?? []).map((row) => row.slug as string).filter(Boolean);
 }
+
+// --- Dashboard admin: todas las propiedades (destacadas incluidas), con búsqueda, filtro y paginación ---
+export async function getAdminProperties(opts: {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  listingType?: "all" | "sale" | "rent";
+} = {}): Promise<{ properties: Property[]; totalCount: number }> {
+  const { page = 1, pageSize = 10, query: searchTerm, listingType = "all" } = opts;
+  const from = (page - 1) * pageSize;
+
+  let query = supabase
+    .from("properties")
+    .select("*, property_images(*)", { count: "exact" })
+    .order("created_at", { ascending: false });
+
+  if (listingType !== "all") query = query.eq("listing_type", listingType);
+
+  const term = searchTerm?.trim().replace(/[,()%]/g, " ");
+  if (term) {
+    query = query.or(
+      `title.ilike.%${term}%,city.ilike.%${term}%,address.ilike.%${term}%,neighborhood.ilike.%${term}%,full_location.ilike.%${term}%`
+    );
+  }
+
+  const { data, count, error } = await query.range(from, from + pageSize - 1);
+  if (error) {
+    console.error("Error fetching admin properties:", error.message);
+    return { properties: [], totalCount: 0 };
+  }
+  return { properties: (data ?? []).map((row) => mapRow(row)), totalCount: count ?? 0 };
+}

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function Navbar() {
   const { t } = useTranslations();
-  const { user, avatarUrl, displayName, provider, signOut, loading } = useAuth();
+  const { user, avatarUrl, displayName, provider, role, signOut, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("buy");
@@ -198,6 +198,16 @@ export function Navbar() {
                     </div>
 
                     <div className="pt-1">
+                      {role === "admin" && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="w-full px-4 py-2 text-left text-sm text-nordic-dark hover:bg-mosque/5 flex items-center gap-2 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                          <span>{t("navbar.admin")}</span>
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={async () => {

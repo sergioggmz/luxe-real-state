@@ -18,6 +18,7 @@ interface AuthContextType {
   avatarUrl: string | null;
   displayName: string | null;
   provider: string | null;
+  role: string | null;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithGithub: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -31,6 +32,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [roleState, setRoleState] = useState<{ userId: string; role: string } | null>(null);
+
+  // Rol del usuario (RLS permite leer solo la fila propia)
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setRoleState({ userId, role: (data?.role as string | undefined) ?? "user" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, userId]);
+  const role = userId && roleState?.userId === userId ? roleState.role : null;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -157,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatarUrl,
         displayName,
         provider,
+        role,
         signInWithGoogle,
         signInWithGithub,
         signOut,
